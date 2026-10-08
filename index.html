@@ -931,11 +931,11 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* 桌面默认显示 / 隐藏规则 */
+  /* 桌面默认：显示桌面三框，隐藏手机三框 */
   .desktop-only { display: flex; }
   .mobile-only  { display: none; }
 
-  /* 手机：上下堆叠 */
+  /* ========== 手机端 ========== */
   @media (max-width: 860px) {
     body { padding: 10px 10px 14px; }
     .topbar { padding: 4px 12px 8px; }
@@ -962,25 +962,33 @@
       gap: 8px;
     }
 
-    /* 手机：显示画布上方三框，隐藏面板三框 */
-    .desktop-only { display: none; }
-    .mobile-only  { display: flex; }
+    /* 手机：隐藏桌面三框，显示手机三框 */
+    .desktop-only { display: none !important; }
+    .mobile-only  { display: flex !important; }
 
-    /* 手机：隐藏本局目标 */
-    .desktop-goal { display: none; }
+    /* 手机：隐藏本局目标（强制，避免被覆盖） */
+    .goal-box { display: none !important; }
 
     .top-stats {
-      gap: 6px;
+      gap: 8px;
       max-width: 360px;
     }
     .top-stats .stat-box {
-      min-height: 56px;
-      padding: 6px 4px;
-      border-radius: 12px;
+      min-height: 62px;
+      padding: 8px 6px;
+      border-radius: 14px;
     }
-    .top-stats .stat-box .label { font-size: 9px; letter-spacing: 1px; }
-    .top-stats .stat-box .value { font-size: 18px; }
-    .top-stats .next-box img { width: 34px; height: 34px; }
+    .top-stats .stat-box .label {
+      font-size: 10px;
+      letter-spacing: 1px;
+    }
+    .top-stats .stat-box .value {
+      font-size: 20px;
+    }
+    .top-stats .next-box img {
+      width: 44px !important;
+      height: 44px !important;
+    }
 
     .game-wrap {
       padding: 6px;
@@ -991,7 +999,7 @@
     .panel {
       width: 100%;
       max-width: 360px;
-      padding: 12px 12px 14px;
+      padding: 12px 14px 14px;
       border-radius: 18px;
     }
     .panel .tip { display: none; }
@@ -999,8 +1007,8 @@
     .panel-tag {
       font-size: 12px;
       padding: 0 32px;
-      margin-bottom: 10px;
-      min-height: 20px;
+      margin-bottom: 12px;
+      min-height: 22px;
     }
 
     #restartBtn {
@@ -1085,7 +1093,7 @@
 
           <div id="comboBadge">暴击 ×2</div>
 
-          <div class="goal-box desktop-goal">
+          <div class="goal-box">
             <h4>本局目标</h4>
             <div id="goalList"></div>
           </div>
