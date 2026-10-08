@@ -5,9 +5,17 @@ const gameWrap = document.getElementById("gameWrap");
 const aimLine = document.getElementById("aimLine");
 const floatingPreview = document.getElementById("floatingPreview");
 const previewImg = document.getElementById("previewImg");
+
+// 桌面元素
 const nextImgDom = document.getElementById("nextImg");
 const scoreDom = document.getElementById("score");
 const bestScoreDom = document.getElementById("bestScore");
+
+// 手机元素
+const nextImgMobileDom = document.getElementById("nextImgMobile");
+const scoreMobileDom = document.getElementById("scoreMobile");
+const bestScoreMobileDom = document.getElementById("bestScoreMobile");
+
 const comboBadge = document.getElementById("comboBadge");
 const goalListDom = document.getElementById("goalList");
 const gameOverModal = document.getElementById("gameOverModal");
@@ -74,6 +82,20 @@ function rollQuote() {
   }
 }
 
+/* 同步更新分数 / 最高 / 下一个 */
+function syncScore(v) {
+  scoreDom.textContent = v;
+  if (scoreMobileDom) scoreMobileDom.textContent = v;
+}
+function syncBest(v) {
+  bestScoreDom.textContent = v;
+  if (bestScoreMobileDom) bestScoreMobileDom.textContent = v;
+}
+function syncNext(src) {
+  if (nextImgDom) nextImgDom.src = src;
+  if (nextImgMobileDom) nextImgMobileDom.src = src;
+}
+
 const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
 function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
@@ -96,7 +118,17 @@ function computeDisplaySize() {
     }
     return { w: Math.round(w), h: Math.round(h) };
   }
-  return { w: 375, h: Math.round(375 / ratio) };
+
+  // 桌面：宽度最多 360，高度不超过视口 78%
+  const maxW = 360;
+  const maxH = vh * 0.78;
+  let w = maxW;
+  let h = w / ratio;
+  if (h > maxH) {
+    h = maxH;
+    w = h * ratio;
+  }
+  return { w: Math.round(w), h: Math.round(h) };
 }
 
 function applyDisplaySize() {
@@ -177,7 +209,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
   bestScore = 0;
   localStorage.setItem("flowerBestScore", 0);
 }
-bestScoreDom.textContent = bestScore;
+syncBest(bestScore);
 
 let audioCtx = null;
 function ensureAudio() {
@@ -340,7 +372,7 @@ function checkGoals() {
       g.done = true;
       changed = true;
       score += g.reward;
-      scoreDom.textContent = score;
+      syncScore(score);
       bumpScore();
       showFloatText(window.innerWidth / 2, 160, "✅ 目标完成 +" + g.reward, false, false);
       sfxCombo(3);
@@ -445,13 +477,18 @@ function bumpScore() {
   scoreDom.classList.remove("pop");
   void scoreDom.offsetWidth;
   scoreDom.classList.add("pop");
+  if (scoreMobileDom) {
+    scoreMobileDom.classList.remove("pop");
+    void scoreMobileDom.offsetWidth;
+    scoreMobileDom.classList.add("pop");
+  }
 }
 
 function updateBestScore() {
   if (score > bestScore) {
     bestScore = score;
     localStorage.setItem("flowerBestScore", bestScore);
-    bestScoreDom.textContent = bestScore;
+    syncBest(bestScore);
   }
 }
 
@@ -496,7 +533,7 @@ async function initGame() {
 
   if (comboTimer) clearTimeout(comboTimer);
   comboBadge.style.display = "none";
-  scoreDom.textContent = "0";
+  syncScore(0);
 
   rollQuote();
   refreshSoundToggle();
@@ -730,7 +767,7 @@ function createMergedBall(x, y, levelIndex, mult) {
 
   setTimeout(() => {
     score += gained;
-    scoreDom.textContent = score;
+    syncScore(score);
     bumpScore();
     updateBestScore();
 
@@ -756,7 +793,7 @@ function createMergedBall(x, y, levelIndex, mult) {
 }
 
 function updatePreview() {
-  nextImgDom.src = LEVEL[nextLevelIndex].src;
+  syncNext(LEVEL[nextLevelIndex].src);
   previewImg.src = LEVEL[nextLevelIndex].src;
 }
 

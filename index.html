@@ -254,6 +254,58 @@
     filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
   }
 
+  /* 桌面：面板里的三框 */
+  .panel-stats {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+  }
+  .panel-stats .stat-box {
+    flex: 1;
+    background: linear-gradient(180deg, #fff 0%, #fff5fa 100%);
+    border-radius: 14px;
+    padding: 8px 6px;
+    text-align: center;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 225, 0.8),
+      0 4px 10px rgba(255, 180, 210, 0.12);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 58px;
+  }
+  .panel-stats .stat-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 14px 14px 0 0;
+    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
+  }
+  .panel-stats .stat-box .label {
+    font-size: 10px;
+    color: #c99;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .panel-stats .stat-box .value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #d94a76;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .panel-stats .next-box img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
+  }
+
   /* 画布外框 */
   .game-wrap {
     position: relative;
@@ -931,6 +983,10 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
+  /* 桌面显示：面板里的三框，隐藏画布上方三框 */
+  .desktop-only { display: flex; }
+  .mobile-only  { display: none; }
+
   /* 手机：上下堆叠 */
   @media (max-width: 860px) {
     body { padding: 10px 10px 14px; }
@@ -957,6 +1013,10 @@
       max-width: 360px;
       gap: 8px;
     }
+
+    /* 手机：显示画布上方三框，隐藏面板三框 */
+    .desktop-only { display: none; }
+    .mobile-only  { display: flex; }
 
     .top-stats {
       gap: 6px;
@@ -1042,22 +1102,23 @@
 
   <div class="app">
     <main class="main">
-      <div class="left-col">
-        <div class="top-stats">
-          <div class="stat-box next-box">
-            <span class="label">下一个</span>
-            <img id="nextImg" src="" alt="" />
-          </div>
-          <div class="stat-box">
-            <span class="label">分数</span>
-            <span class="value" id="score">0</span>
-          </div>
-          <div class="stat-box">
-            <span class="label">最高</span>
-            <span class="value" id="bestScore">0</span>
-          </div>
+      <!-- 手机：画布上方三框 -->
+      <div class="top-stats mobile-only">
+        <div class="stat-box next-box">
+          <span class="label">下一个</span>
+          <img id="nextImgMobile" src="" alt="" />
         </div>
+        <div class="stat-box">
+          <span class="label">分数</span>
+          <span class="value" id="scoreMobile">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">最高</span>
+          <span class="value" id="bestScoreMobile">0</span>
+        </div>
+      </div>
 
+      <div class="left-col">
         <div class="game-wrap" id="gameWrap">
           <canvas id="gameCanvas"></canvas>
           <div class="aim-line" id="aimLine"></div>
@@ -1070,6 +1131,22 @@
       <div class="right-col">
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
+
+          <!-- 桌面：面板顶部三框 -->
+          <div class="top-stats desktop-only">
+            <div class="stat-box next-box">
+              <span class="label">下一个</span>
+              <img id="nextImg" src="" alt="" />
+            </div>
+            <div class="stat-box">
+              <span class="label">分数</span>
+              <span class="value" id="score">0</span>
+            </div>
+            <div class="stat-box">
+              <span class="label">最高</span>
+              <span class="value" id="bestScore">0</span>
+            </div>
+          </div>
 
           <div id="comboBadge">暴击 ×2</div>
 
