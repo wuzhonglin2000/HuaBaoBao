@@ -45,6 +45,7 @@
     50% { opacity: 1; }
   }
 
+  /* 开场动画 */
   .splash {
     position: fixed;
     inset: 0;
@@ -190,7 +191,90 @@
     flex-shrink: 0;
   }
 
-  /* 画布外框（悬浮徽章的锚点） */
+  /* 画布上方：分数 + 最高 两个大卡 */
+  .bottom-stats {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    order: -1; /* 保证在画布上面 */
+  }
+  .bottom-stats .stat-card {
+    flex: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
+    border-radius: 16px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
+      0 4px 12px rgba(255, 180, 210, 0.18);
+    position: relative;
+    overflow: visible;
+  }
+  .bottom-stats .stat-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
+  }
+  .bottom-stats .stat-card .label {
+    font-size: 10px;
+    color: #c99;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .bottom-stats .stat-card .value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #d94a76;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    transition: transform 0.2s ease;
+  }
+  .bottom-stats .stat-card .value.pop {
+    animation: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.35); color: #ff7a1a; }
+    100% { transform: scale(1); }
+  }
+
+  .bottom-stats .stat-card.score-pop {
+    animation: scoreCardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes scoreCardPop {
+    0% { transform: scale(1); }
+    40% {
+      transform: scale(1.08);
+      box-shadow:
+        inset 0 0 0 2px #ffb3cd,
+        0 10px 24px rgba(255, 120, 160, 0.45);
+    }
+    100% { transform: scale(1); }
+  }
+  .bottom-stats .stat-card .score-tip {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    font-weight: 800;
+    font-size: 22px;
+    color: #ff6b95;
+    text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255, 130, 170, 0.85);
+    animation: scoreTipUp 0.9s ease-out forwards;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 3;
+  }
+  @keyframes scoreTipUp {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+    25% { opacity: 1; transform: translate(-50%, -12px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
+  }
+
+  /* 画布外框 */
   .game-wrap {
     position: relative;
     border-radius: 24px;
@@ -237,121 +321,54 @@
     cursor: pointer;
   }
 
-  /* 画布内右上角悬浮「下一个」 */
+  /* 画布左上角斜挂签名 qm.png */
+  .sign-icon {
+    position: absolute;
+    top: -12px;
+    left: -12px;
+    width: 48px;
+    height: 48px;
+    object-fit: contain;
+    transform: rotate(-45deg);
+    z-index: 8;
+    pointer-events: none;
+    filter: drop-shadow(0 4px 8px rgba(255, 140, 180, 0.5));
+  }
+
+  /* 画布右上角「下一个」 — 加大加阴影 */
   .next-badge {
     position: absolute;
-    top: 18px;
-    right: 18px;
+    top: 16px;
+    right: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 7px 9px 6px;
-    background: rgba(255, 255, 255, 0.94);
-    border-radius: 14px;
+    padding: 9px 11px 8px;
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 16px;
     box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
-      0 6px 14px rgba(255, 140, 180, 0.28);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-    z-index: 6;
+      inset 0 0 0 2px rgba(255, 170, 200, 0.9),
+      0 8px 20px rgba(255, 120, 160, 0.4),
+      0 0 0 4px rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 7;
     pointer-events: none;
   }
   .next-badge .label {
-    font-size: 9px;
-    color: #c99;
-    letter-spacing: 1px;
+    font-size: 10px;
+    color: #d97aa0;
+    letter-spacing: 2px;
     line-height: 1;
+    font-weight: 700;
   }
   .next-badge img {
-    width: 36px;
-    height: 36px;
+    width: 46px;
+    height: 46px;
     object-fit: contain;
     border-radius: 50%;
-    filter: drop-shadow(0 2px 4px rgba(255, 140, 180, 0.35));
-  }
-
-  /* 画布下方：分数 + 最高 */
-  .bottom-stats {
-    display: flex;
-    gap: 10px;
-    width: 100%;
-  }
-  .bottom-stats .stat-card {
-    flex: 1;
-    background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
-    border-radius: 16px;
-    padding: 10px 8px;
-    text-align: center;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
-      0 4px 12px rgba(255, 180, 210, 0.18);
-    position: relative;
-    overflow: visible;
-  }
-  .bottom-stats .stat-card::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    border-radius: 16px 16px 0 0;
-    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
-  }
-  .bottom-stats .stat-card .label {
-    font-size: 10px;
-    color: #c99;
-    letter-spacing: 2px;
-    margin-bottom: 2px;
-  }
-  .bottom-stats .stat-card .value {
-    font-size: 22px;
-    font-weight: 800;
-    color: #d94a76;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-    transition: transform 0.2s ease;
-  }
-  .bottom-stats .stat-card .value.pop {
-    animation: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes pop {
-    0% { transform: scale(1); }
-    40% { transform: scale(1.35); color: #ff7a1a; }
-    100% { transform: scale(1); }
-  }
-
-  /* 分数卡片弹跳 + 得分飘字 */
-  .bottom-stats .stat-card.score-pop {
-    animation: scoreCardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes scoreCardPop {
-    0% { transform: scale(1); }
-    40% {
-      transform: scale(1.08);
-      box-shadow:
-        inset 0 0 0 2px #ffb3cd,
-        0 10px 24px rgba(255, 120, 160, 0.45);
-    }
-    100% { transform: scale(1); }
-  }
-  .bottom-stats .stat-card .score-tip {
-    position: absolute;
-    left: 50%;
-    top: 8px;
-    transform: translateX(-50%);
-    font-weight: 800;
-    font-size: 22px;
-    color: #ff6b95;
-    text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255, 130, 170, 0.85);
-    animation: scoreTipUp 0.9s ease-out forwards;
-    pointer-events: none;
-    white-space: nowrap;
-    z-index: 3;
-  }
-  @keyframes scoreTipUp {
-    0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
-    25% { opacity: 1; transform: translate(-50%, -12px) scale(1.2); }
-    100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
+    filter: drop-shadow(0 3px 6px rgba(255, 140, 180, 0.45));
   }
 
   .aim-line {
@@ -1007,20 +1024,32 @@
     /* 手机：隐藏本局目标 */
     .goal-box { display: none !important; }
 
+    /* 手机：隐藏暴击条（神迹 ×N 那一条） */
+    #comboBadge { display: none !important; }
+
     .game-wrap {
       padding: 6px;
       border-radius: 18px;
     }
     canvas { border-radius: 14px; }
 
+    /* 手机：签名稍微缩小 */
+    .sign-icon {
+      width: 40px;
+      height: 40px;
+      top: -10px;
+      left: -10px;
+    }
+
+    /* 手机：下一个徽章 */
     .next-badge {
       top: 12px;
       right: 12px;
-      padding: 6px 8px 5px;
-      border-radius: 12px;
+      padding: 7px 9px 6px;
+      border-radius: 14px;
     }
-    .next-badge .label { font-size: 8px; }
-    .next-badge img { width: 32px; height: 32px; }
+    .next-badge .label { font-size: 9px; }
+    .next-badge img { width: 40px; height: 40px; }
 
     .bottom-stats { gap: 8px; }
     .bottom-stats .stat-card {
@@ -1080,20 +1109,7 @@
   <div class="app">
     <main class="main">
       <div class="left-col">
-        <div class="game-wrap" id="gameWrap">
-          <canvas id="gameCanvas"></canvas>
-          <div class="aim-line" id="aimLine"></div>
-          <div class="floating-preview" id="floatingPreview">
-            <img id="previewImg" src="" alt="" />
-          </div>
-          <!-- 画布右上角悬浮「下一个」 -->
-          <div class="next-badge">
-            <span class="label">下一个</span>
-            <img id="nextImg" src="" alt="" />
-          </div>
-        </div>
-
-        <!-- 画布下方：分数 + 最高 -->
+        <!-- 画布上方：分数 + 最高 -->
         <div class="bottom-stats">
           <div class="stat-card">
             <div class="label">分数</div>
@@ -1102,6 +1118,23 @@
           <div class="stat-card">
             <div class="label">最高</div>
             <div class="value" id="bestScore">0</div>
+          </div>
+        </div>
+
+        <div class="game-wrap" id="gameWrap">
+          <canvas id="gameCanvas"></canvas>
+          <div class="aim-line" id="aimLine"></div>
+          <div class="floating-preview" id="floatingPreview">
+            <img id="previewImg" src="" alt="" />
+          </div>
+
+          <!-- 画布左上角斜挂签名 -->
+          <img class="sign-icon" src="img/qm.png" alt="" />
+
+          <!-- 画布右上角「下一个」 -->
+          <div class="next-badge">
+            <span class="label">下一个</span>
+            <img id="nextImg" src="" alt="" />
           </div>
         </div>
       </div>
