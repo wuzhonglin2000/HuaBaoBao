@@ -40,7 +40,6 @@
     z-index: 0;
     animation: breathe 9s ease-in-out infinite;
   }
-
   @keyframes breathe {
     0%, 100% { opacity: 0.85; }
     50% { opacity: 1; }
@@ -144,6 +143,7 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* 顶部标题 */
   .topbar {
     text-align: center;
     padding: 8px 16px 12px;
@@ -167,7 +167,7 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
   }
 
-  /* 桌面：左右并排 */
+  /* 主区 */
   .main {
     position: relative;
     z-index: 1;
@@ -178,7 +178,6 @@
     width: 100%;
     max-width: 900px;
   }
-
   .left-col {
     display: flex;
     flex-direction: column;
@@ -186,7 +185,6 @@
     gap: 12px;
     flex-shrink: 0;
   }
-
   .right-col {
     display: flex;
     flex-direction: column;
@@ -380,7 +378,6 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
     min-height: 20px;
     margin-bottom: 10px;
     padding: 0 32px;
@@ -389,23 +386,10 @@
     color: #d88aa8;
     font-family: "PingFang SC", "STKaiti", "KaiTi", serif;
     animation: quoteFade 0.6s ease;
-    position: relative;
-  }
-  .panel-tag-icon {
-    position: absolute;
-    top: -16px;
-    left: -16px;
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    transform: rotate(-45deg);
-    z-index: 7;
-    filter: drop-shadow(0 4px 8px rgba(255, 140, 180, 0.4));
-    pointer-events: none;
+    text-align: center;
   }
   .panel-tag span {
     line-height: 1.4;
-    text-align: center;
     display: block;
   }
   @keyframes quoteFade {
@@ -947,13 +931,10 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* 手机竖屏：上下堆叠，画布矮一点 */
+  /* 手机：上下堆叠 */
   @media (max-width: 860px) {
     body { padding: 10px 10px 14px; }
-
-    .topbar {
-      padding: 4px 12px 8px;
-    }
+    .topbar { padding: 4px 12px 8px; }
     .topbar h1 {
       font-size: 17px;
       letter-spacing: 3px;
@@ -970,7 +951,6 @@
       gap: 8px;
       max-width: 100%;
     }
-
     .left-col,
     .right-col {
       width: 100%;
@@ -1003,7 +983,6 @@
       padding: 10px 12px 12px;
       border-radius: 18px;
     }
-
     .panel .tip { display: none; }
 
     .panel-tag {
@@ -1011,12 +990,6 @@
       padding: 0 28px;
       margin-bottom: 8px;
       min-height: 18px;
-    }
-    .panel-tag-icon {
-      width: 32px;
-      height: 32px;
-      top: -10px;
-      left: -10px;
     }
 
     .goal-box {
@@ -1069,7 +1042,6 @@
 
   <div class="app">
     <main class="main">
-      <!-- 左列：三框 + 画布 -->
       <div class="left-col">
         <div class="top-stats">
           <div class="stat-box next-box">
@@ -1095,7 +1067,6 @@
         </div>
       </div>
 
-      <!-- 右列：目标 + 情话 + 重开 -->
       <div class="right-col">
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
@@ -1108,7 +1079,6 @@
           </div>
 
           <div class="panel-tag" id="panelTagWrap">
-            <img class="panel-tag-icon" src="img/qm.png" alt="" />
             <span id="panelTag">花宝宝，今天也超级想你</span>
           </div>
 

@@ -87,7 +87,7 @@ function computeDisplaySize() {
 
   if (isNarrow) {
     const maxW = vw - 40;
-    const maxH = vh * 0.42;
+    const maxH = vh * 0.32;
     let w = maxW;
     let h = w / ratio;
     if (h > maxH) {
