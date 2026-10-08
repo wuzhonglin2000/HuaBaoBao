@@ -2,6 +2,8 @@ const { Engine, Render, Runner, World, Bodies, Events } = Matter;
 
 const canvasEl = document.getElementById("gameCanvas");
 const gameWrap = document.getElementById("gameWrap");
+const leftCol = document.getElementById("leftCol");
+const mobileStats = document.getElementById("mobileStats");
 const aimLine = document.getElementById("aimLine");
 const floatingPreview = document.getElementById("floatingPreview");
 const previewImg = document.getElementById("previewImg");
@@ -98,6 +100,7 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
+/* 手机端画布宽度固定 340（和卡片对齐），桌面端 360 */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -105,17 +108,20 @@ function computeDisplaySize() {
   const isNarrow = vw <= 860;
 
   if (isNarrow) {
-    const maxW = vw - 40;
-    const maxH = vh * 0.42;
-    let w = maxW;
-    let h = w / ratio;
-    if (h > maxH) {
-      h = maxH;
-      w = h * ratio;
+    // 手机端：目标宽度
+    let targetW = Math.min(vw - 32, 340);
+    // 画布宽固定，高按比例
+    let targetH = targetW / ratio;
+    // 如果太高（超过视口 48%），反过来按高度算宽度
+    const maxH = vh * 0.48;
+    if (targetH > maxH) {
+      targetH = maxH;
+      targetW = targetH * ratio;
     }
-    return { w: Math.round(w), h: Math.round(h) };
+    return { w: Math.round(targetW), h: Math.round(targetH) };
   }
 
+  // 桌面端
   const maxW = 360;
   const maxH = vh * 0.72;
   let w = maxW;
@@ -134,20 +140,17 @@ function applyDisplaySize() {
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
-  // 手机端：让画布上方的分数卡与画布同宽
-  const mobileStats = document.querySelector(".mobile-stats");
-  if (mobileStats) {
-    if (window.innerWidth <= 860) {
-      // game-wrap padding = 6，所以总宽度 = 画布宽度 + 12
-      const totalW = size.w + 12;
-      mobileStats.style.width = totalW + "px";
-      mobileStats.style.marginLeft = "auto";
-      mobileStats.style.marginRight = "auto";
-    } else {
-      mobileStats.style.width = "";
-      mobileStats.style.marginLeft = "";
-      mobileStats.style.marginRight = "";
-    }
+  // 手机端：让分数卡、画布外框、下方面板与画布宽度一致
+  if (window.innerWidth <= 860 && leftCol && mobileStats) {
+    // game-wrap padding = 6，左右各 6 → 总宽 = size.w + 12
+    const totalW = size.w + 12;
+    leftCol.style.width = totalW + "px";
+    mobileStats.style.width = "100%";
+    gameWrap.style.width = "100%";
+  } else {
+    if (leftCol) leftCol.style.width = "";
+    if (mobileStats) mobileStats.style.width = "";
+    if (gameWrap) gameWrap.style.width = "";
   }
 }
 

@@ -142,7 +142,6 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* 顶部标题：桌面显示，手机隐藏 */
   .topbar {
     text-align: center;
     padding: 8px 16px 12px;
@@ -191,10 +190,9 @@
     flex-shrink: 0;
   }
 
-  /* 手机端画布上方：分数 + 最高（桌面隐藏） */
   .mobile-stats {
     display: none;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
   }
   .mobile-stats .stat-card {
@@ -272,7 +270,6 @@
     100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
-  /* 画布外框 */
   .game-wrap {
     position: relative;
     border-radius: 24px;
@@ -319,7 +316,6 @@
     cursor: pointer;
   }
 
-  /* 画布内左上角斜挂签名 */
   .sign-icon {
     position: absolute;
     top: 16px;
@@ -333,7 +329,6 @@
     filter: drop-shadow(0 4px 8px rgba(255, 140, 180, 0.5));
   }
 
-  /* 画布右上角悬浮「下一个」（手机端才用） */
   .next-badge {
     display: none;
     position: absolute;
@@ -405,7 +400,6 @@
     border-radius: 50%;
   }
 
-  /* 面板：桌面用 */
   .panel {
     width: 340px;
     background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,250,252,0.92) 100%);
@@ -421,7 +415,6 @@
     position: relative;
   }
 
-  /* 桌面：面板顶部三框 */
   .panel-top-stats {
     display: flex;
     gap: 8px;
@@ -1053,7 +1046,6 @@
     body { padding: 8px 8px 12px; }
     .app { gap: 6px; }
 
-    /* 隐藏顶部大标题 */
     .topbar { display: none; }
 
     .main {
@@ -1063,11 +1055,9 @@
       max-width: 100%;
     }
 
-    /* 关键：让 left-col 的所有子元素左右贴齐，宽度由画布决定 */
+    /* 左列：宽度由脚本控制（和画布同宽） */
     .left-col {
-      align-items: stretch;
-      width: 100%;
-      max-width: 360px;
+      align-items: center;
       gap: 8px;
     }
     .right-col {
@@ -1076,11 +1066,11 @@
       gap: 8px;
     }
 
-    /* 分数卡：跟画布对齐 */
+    /* 卡片 + 画布都由脚本统一设置宽度，这里只做样式 */
     .mobile-stats {
       display: flex;
       gap: 8px;
-      width: 100%;
+      /* width 由 JS 设置 */
     }
     .mobile-stats .stat-card {
       padding: 10px 8px;
@@ -1089,21 +1079,17 @@
     .mobile-stats .stat-card .label { font-size: 10px; }
     .mobile-stats .stat-card .value { font-size: 20px; }
 
-    /* 隐藏本局目标、暴击条、桌面三框 */
     .goal-box { display: none !important; }
     #comboBadge { display: none !important; }
     .panel-top-stats { display: none !important; }
 
-    /* 画布外框在 left-col 里居中 */
     .game-wrap {
       padding: 6px;
       border-radius: 18px;
-      align-self: center;
-      max-width: 100%;
+      /* width 由 JS 设置 */
     }
     canvas { border-radius: 14px; }
 
-    /* 手机：显示画布右上角「下一个」 */
     .next-badge { display: flex; }
 
     .sign-icon {
@@ -1113,13 +1099,11 @@
       left: 12px;
     }
 
-    /* 手机：下方面板（情话 + 重开） */
     .panel {
       width: 100%;
       max-width: 360px;
       padding: 14px 14px 16px;
       border-radius: 18px;
-      align-self: center;
     }
     .panel .tip { display: none; }
 
@@ -1144,9 +1128,6 @@
       top: 8px;
       right: 8px;
     }
-
-    /* 手机端禁用背景飘落花瓣 */
-    .ambient-petal { display: none !important; }
   }
 </style>
 </head>
@@ -1167,9 +1148,8 @@
 
   <div class="app">
     <main class="main">
-      <div class="left-col">
-        <!-- 手机：画布上方分数 + 最高（桌面隐藏） -->
-        <div class="mobile-stats">
+      <div class="left-col" id="leftCol">
+        <div class="mobile-stats" id="mobileStats">
           <div class="stat-card">
             <div class="label">分数</div>
             <div class="value" id="scoreMobile">0</div>
@@ -1187,10 +1167,8 @@
             <img id="previewImg" src="" alt="" />
           </div>
 
-          <!-- 画布左上角签名 -->
           <img class="sign-icon" src="img/qm.png" alt="" />
 
-          <!-- 手机：画布右上角「下一个」 -->
           <div class="next-badge">
             <span class="label">下一个</span>
             <img id="nextImgMobile" src="" alt="" />
@@ -1202,7 +1180,6 @@
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
 
-          <!-- 桌面：面板顶部三框 -->
           <div class="panel-top-stats">
             <div class="stat-box next-box">
               <span class="label">下一个</span>
