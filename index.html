@@ -64,7 +64,6 @@
     50% { opacity: 1; }
   }
 
-  /* 开场动画 */
   .splash {
     position: fixed;
     inset: 0;
@@ -163,8 +162,9 @@
     position: relative;
     z-index: 1;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
     align-items: center;
+    gap: 14px;
     width: 100%;
     opacity: 0;
     animation: appIn 0.9s ease-out 1.5s forwards;
@@ -208,23 +208,91 @@
     position: relative;
     z-index: 1;
     display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    gap: 24px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
     width: 100%;
     max-width: 860px;
   }
 
+  .top-stats {
+    display: flex;
+    gap: 10px;
+    align-items: stretch;
+    justify-content: center;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .top-stats .stat-box {
+    flex: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
+    border-radius: 16px;
+    padding: 8px 6px;
+    text-align: center;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
+      0 4px 12px rgba(255, 180, 210, 0.18);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 62px;
+  }
+
+  .top-stats .stat-box::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
+  }
+
+  .top-stats .stat-box .label {
+    font-size: 10px;
+    color: #c99;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+
+  .top-stats .stat-box .value {
+    font-size: 20px;
+    font-weight: 800;
+    color: #d94a76;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .top-stats .stat-box .value.pop {
+    animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.28); color: #ff7a1a; }
+    100% { transform: scale(1); }
+  }
+
+  .top-stats .next-box img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
+  }
+
   .game-wrap {
     position: relative;
-    border-radius: 28px;
-    padding: 10px;
+    border-radius: 24px;
+    padding: 8px;
     background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
     box-shadow:
       0 0 0 1px rgba(255, 200, 220, 0.7),
-      0 0 0 6px rgba(255, 255, 255, 0.6),
-      0 24px 60px rgba(255, 160, 190, 0.28),
-      0 8px 24px rgba(180, 200, 255, 0.2);
+      0 0 0 5px rgba(255, 255, 255, 0.6),
+      0 20px 50px rgba(255, 160, 190, 0.25),
+      0 6px 18px rgba(180, 200, 255, 0.18);
     flex-shrink: 0;
     transition: transform 0.3s ease;
   }
@@ -247,12 +315,12 @@
     opacity: 0.7;
     filter: drop-shadow(0 1px 2px rgba(255, 150, 180, 0.4));
   }
-  .game-wrap::before { top: 4px; left: 6px; }
-  .game-wrap::after  { bottom: 4px; right: 6px; transform: rotate(180deg); }
+  .game-wrap::before { top: 3px; left: 5px; }
+  .game-wrap::after  { bottom: 3px; right: 5px; transform: rotate(180deg); }
 
   canvas {
     display: block;
-    border-radius: 20px;
+    border-radius: 18px;
     background: #fff9ec;
     box-shadow:
       inset 0 0 60px rgba(255, 210, 225, 0.6),
@@ -264,7 +332,7 @@
 
   .aim-line {
     position: absolute;
-    top: 10px;
+    top: 8px;
     width: 2px;
     height: 0;
     background: linear-gradient(180deg, #ffb3cd 0%, #ff6b95 100%);
@@ -300,31 +368,55 @@
   }
 
   .panel {
-    width: 290px;
+    width: 100%;
+    max-width: 420px;
     background: linear-gradient(180deg,
       rgba(255,255,255,0.98) 0%,
       rgba(255,250,252,0.92) 100%);
-    border-radius: 28px;
-    padding: 22px 20px;
+    border-radius: 24px;
+    padding: 14px 16px 16px;
     box-shadow:
       0 0 0 1px rgba(255, 200, 220, 0.7),
-      0 0 0 6px rgba(255, 255, 255, 0.55),
-      0 24px 60px rgba(255, 170, 200, 0.25),
-      0 8px 24px rgba(180, 200, 255, 0.18);
+      0 0 0 5px rgba(255, 255, 255, 0.55),
+      0 20px 50px rgba(255, 170, 200, 0.22),
+      0 6px 18px rgba(180, 200, 255, 0.15);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    flex-shrink: 0;
     position: relative;
   }
+
+  .sound-toggle {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: #fff5fa;
+    border-radius: 50%;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(255, 120, 160, 0.2);
+    z-index: 6;
+    transition: transform 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .sound-toggle:active { transform: scale(0.9); }
+  .sound-toggle.off { opacity: 0.55; }
 
   .panel-tag {
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    min-height: 22px;
-    margin-bottom: 12px;
-    padding: 0 36px;
+    min-height: 20px;
+    margin-bottom: 10px;
+    padding: 0 32px;
     font-size: 12px;
     letter-spacing: 1px;
     color: #d88aa8;
@@ -335,10 +427,10 @@
 
   .panel-tag-icon {
     position: absolute;
-    top: -18px;
-    left: -18px;
-    width: 46px;
-    height: 46px;
+    top: -16px;
+    left: -16px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     transform: rotate(-45deg);
     z-index: 7;
@@ -357,117 +449,6 @@
     100% { opacity: 1; transform: translateY(0); }
   }
 
-  .sound-toggle {
-    position: absolute;
-    top: 16px;
-    right: 16px;
-    width: 30px;
-    height: 30px;
-    border: none;
-    background: #fff5fa;
-    border-radius: 50%;
-    font-size: 14px;
-    line-height: 1;
-    cursor: pointer;
-    box-shadow: 0 4px 10px rgba(255, 120, 160, 0.2);
-    z-index: 6;
-    transition: transform 0.15s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sound-toggle:active { transform: scale(0.9); }
-  .sound-toggle.off { opacity: 0.55; }
-
-  .next-preview-box {
-    background: linear-gradient(180deg, #fff9fc 0%, #fff 100%);
-    border-radius: 20px;
-    padding: 14px;
-    text-align: center;
-    margin-bottom: 14px;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.7),
-      0 4px 12px rgba(255, 180, 210, 0.15);
-    position: relative;
-  }
-
-  .next-preview-box::after {
-    content: "✦";
-    position: absolute;
-    top: 8px;
-    right: 12px;
-    color: #f0b8cc;
-    font-size: 10px;
-  }
-
-  .next-preview-box p {
-    font-size: 11px;
-    color: #c99;
-    margin-bottom: 6px;
-    letter-spacing: 3px;
-  }
-
-  #nextImg {
-    width: 72px;
-    height: 72px;
-    object-fit: contain;
-    border-radius: 50%;
-    filter: drop-shadow(0 4px 8px rgba(255, 140, 180, 0.3));
-  }
-
-  .stat-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    margin-bottom: 12px;
-  }
-
-  .stat-card {
-    background: linear-gradient(180deg, #fff 0%, #fff5fa 100%);
-    border-radius: 16px;
-    padding: 12px 8px;
-    text-align: center;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.8),
-      0 4px 10px rgba(255, 180, 210, 0.12);
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stat-card::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
-  }
-
-  .stat-label {
-    display: block;
-    font-size: 10px;
-    color: #c99;
-    letter-spacing: 2px;
-    margin-bottom: 4px;
-  }
-
-  .stat-value {
-    font-size: 24px;
-    font-weight: 800;
-    color: #d94a76;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .stat-value.pop { animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1); }
-
-  @keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.28); color: #ff7a1a; }
-    100% { transform: scale(1); }
-  }
-
   #comboBadge {
     display: none;
     text-align: center;
@@ -476,7 +457,7 @@
     color: #fff;
     background: linear-gradient(135deg, #ff9a3c, #ff4d7e);
     border-radius: 12px;
-    padding: 8px;
+    padding: 7px;
     margin-bottom: 10px;
     box-shadow: 0 6px 16px rgba(255, 77, 126, 0.35);
     letter-spacing: 1px;
@@ -500,9 +481,9 @@
 
   .goal-box {
     background: linear-gradient(180deg, #f8fcff 0%, #f0f8ff 100%);
-    border-radius: 18px;
-    padding: 14px;
-    margin-bottom: 14px;
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
     box-shadow:
       inset 0 0 0 1px rgba(200, 225, 245, 0.8),
       0 4px 10px rgba(180, 210, 240, 0.15);
@@ -511,7 +492,7 @@
   .goal-box h4 {
     font-size: 11px;
     color: #7aa8c8;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
     letter-spacing: 3px;
     text-align: center;
     display: flex;
@@ -534,7 +515,7 @@
     display: flex;
     flex-direction: column;
     gap: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
   }
   .goal-item:last-child { margin-bottom: 0; }
 
@@ -576,12 +557,12 @@
 
   #restartBtn {
     width: 100%;
-    padding: 14px;
+    padding: 12px;
     border: none;
-    border-radius: 16px;
+    border-radius: 14px;
     background: linear-gradient(135deg, #ff8fb1 0%, #ff4d7e 100%);
     color: #fff;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     box-shadow:
@@ -608,7 +589,7 @@
   }
 
   .tip {
-    margin-top: 14px;
+    margin-top: 12px;
     font-size: 10px;
     line-height: 1.8;
     color: #b5a5ab;
@@ -1068,7 +1049,6 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* ============ 手机端优化 ============ */
   @media (max-width: 860px) {
     body {
       padding: 58px 10px 12px;
@@ -1087,31 +1067,41 @@
     }
 
     .topbar h1::before,
-    .topbar h1::after {
-      width: 16px;
+    .topbar h1::after { width: 16px; }
+
+    .app { gap: 10px; }
+    .main { gap: 10px; }
+
+    .top-stats {
+      max-width: 360px;
+      gap: 8px;
     }
 
-    .main {
-      flex-direction: column;
-      align-items: center;
-      gap: 10px;
-      max-width: 100%;
-      width: 100%;
+    .top-stats .stat-box {
+      min-height: 54px;
+      padding: 6px 4px;
+      border-radius: 14px;
     }
+
+    .top-stats .stat-box .label {
+      font-size: 9px;
+      letter-spacing: 1px;
+    }
+
+    .top-stats .stat-box .value { font-size: 18px; }
+
+    .top-stats .next-box img { width: 30px; height: 30px; }
 
     .game-wrap {
       padding: 6px;
-      border-radius: 18px;
+      border-radius: 20px;
     }
 
-    canvas {
-      border-radius: 12px;
-    }
+    canvas { border-radius: 14px; }
 
     .panel {
-      width: 100%;
-      max-width: 340px;
-      padding: 14px 12px;
+      max-width: 360px;
+      padding: 12px 12px 14px;
       border-radius: 20px;
     }
 
@@ -1119,52 +1109,16 @@
 
     .panel-tag {
       font-size: 11px;
-      padding: 0 32px;
-      margin-bottom: 10px;
+      padding: 0 28px;
+      margin-bottom: 8px;
       min-height: 18px;
     }
 
     .panel-tag-icon {
-      width: 36px;
-      height: 36px;
-      top: -14px;
-      left: -14px;
-    }
-
-    .next-preview-box {
-      padding: 10px;
-      margin-bottom: 10px;
-      border-radius: 16px;
-    }
-
-    .next-preview-box p {
-      font-size: 10px;
-      margin-bottom: 4px;
-      letter-spacing: 2px;
-    }
-
-    #nextImg {
-      width: 56px;
-      height: 56px;
-    }
-
-    .stat-grid {
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .stat-card {
-      padding: 8px 6px;
-      border-radius: 14px;
-    }
-
-    .stat-label {
-      font-size: 10px;
-      margin-bottom: 2px;
-    }
-
-    .stat-value {
-      font-size: 20px;
+      width: 34px;
+      height: 34px;
+      top: -12px;
+      left: -12px;
     }
 
     .goal-box {
@@ -1184,9 +1138,7 @@
       margin-bottom: 8px;
     }
 
-    .goal-bar {
-      height: 4px;
-    }
+    .goal-bar { height: 4px; }
 
     #restartBtn {
       padding: 12px;
@@ -1199,8 +1151,8 @@
       width: 26px;
       height: 26px;
       font-size: 12px;
-      top: 12px;
-      right: 12px;
+      top: 8px;
+      right: 8px;
     }
 
     .love-img-wrap { width: 130px; height: 130px; }
@@ -1209,8 +1161,6 @@
 
   @media (max-height: 500px) and (orientation: landscape) {
     body { padding: 50px 12px 12px; }
-    .main { flex-direction: row; }
-    .panel { max-width: 260px; }
   }
 </style>
 </head>
@@ -1231,6 +1181,21 @@
 
   <div class="app">
     <main class="main">
+      <div class="top-stats">
+        <div class="stat-box next-box">
+          <span class="label">下一个</span>
+          <img id="nextImg" src="" alt="" />
+        </div>
+        <div class="stat-box">
+          <span class="label">分数</span>
+          <span class="value" id="score">0</span>
+        </div>
+        <div class="stat-box">
+          <span class="label">最高</span>
+          <span class="value" id="bestScore">0</span>
+        </div>
+      </div>
+
       <div class="game-wrap" id="gameWrap">
         <canvas id="gameCanvas"></canvas>
         <div class="aim-line" id="aimLine"></div>
@@ -1242,32 +1207,16 @@
       <div class="panel">
         <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
 
-        <div class="panel-tag" id="panelTagWrap">
-          <img class="panel-tag-icon" src="img/qm.png" alt="" />
-          <span id="panelTag">花宝宝，今天也超级想你</span>
-        </div>
-
-        <div class="next-preview-box">
-          <p>下一个</p>
-          <img id="nextImg" src="" alt="" />
-        </div>
-
         <div id="comboBadge">暴击 ×2</div>
-
-        <div class="stat-grid">
-          <div class="stat-card">
-            <span class="stat-label">分数</span>
-            <span class="stat-value" id="score">0</span>
-          </div>
-          <div class="stat-card">
-            <span class="stat-label">最高</span>
-            <span class="stat-value" id="bestScore">0</span>
-          </div>
-        </div>
 
         <div class="goal-box">
           <h4>本局目标</h4>
           <div id="goalList"></div>
+        </div>
+
+        <div class="panel-tag" id="panelTagWrap">
+          <img class="panel-tag-icon" src="img/qm.png" alt="" />
+          <span id="panelTag">花宝宝，今天也超级想你</span>
         </div>
 
         <button id="restartBtn">重 新 开 始</button>

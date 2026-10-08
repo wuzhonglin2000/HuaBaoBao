@@ -41,16 +41,13 @@ const BASE_H = 520;
 let width = BASE_W;
 let height = BASE_H;
 
-/* ============ 情话（含废话文学） ============ */
+/* 情话 */
 const LOVE_QUOTES = [
-  // 情话
   "花宝宝，今天也超级想你",
   "花宝宝，想把你揣兜里",
   "花宝宝，想和你贴贴",
   "花宝宝，今天也很喜欢你",
   "花宝宝，抱着你就好了",
-
-  // 废话文学
   "花宝宝，我不困，我只是想睡觉而已",
   "花宝宝，我数了数，你的手指头刚好十根",
   "花宝宝，我这个人没什么优点，就是优点不多",
@@ -78,24 +75,22 @@ function rollQuote() {
   }
 }
 
-/* ============ 暴击分级 ============ */
+/* 暴击分级 */
 const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
 function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
-/* ============ 显示尺寸 ============ */
+/* 显示尺寸 */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H; // 320/520 ≈ 0.615
+  const ratio = BASE_W / BASE_H;
   const isNarrow = vw <= 860;
 
   if (isNarrow) {
-    // 手机：宽度按屏宽算（左右各留 14px），高度按比例推
-    // 但高度不能超过视口 62%，超过就反过来用高度算宽度
     const maxW = vw - 28;
-    const maxH = vh * 0.62;
+    const maxH = vh * 0.55;
     let w = maxW;
     let h = w / ratio;
     if (h > maxH) {
@@ -104,8 +99,6 @@ function computeDisplaySize() {
     }
     return { w: Math.round(w), h: Math.round(h) };
   }
-
-  // 桌面
   return { w: 375, h: Math.round(375 / ratio) };
 }
 
@@ -117,13 +110,13 @@ function applyDisplaySize() {
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 }
 
-/* ============ 死亡线 ============ */
+/* 死亡线 */
 let deadLineY = 100;
 function computeDeadLine() {
   return Math.round(BASE_H * (100 / 520));
 }
 
-/* ============ 等级 ============ */
+/* 等级 */
 const LEVEL = [
   { radius: 16, score: 1, src: "img/0.png" },
   { radius: 24, score: 2, src: "img/1.png" },
@@ -135,7 +128,7 @@ const LEVEL = [
   { radius: 76, score: 100, src: "img/7.png" }
 ];
 
-/* ============ 加权随机 ============ */
+/* 加权随机 */
 const BASE_WEIGHTS = [30, 25, 20, 14, 8, 3, 0, 0];
 
 function getWeights() {
@@ -162,7 +155,7 @@ function pickNext() {
   nextLevelIndex = 0;
 }
 
-/* ============ 状态 ============ */
+/* 状态 */
 let engine, render, runner;
 let balls = [];
 let score = 0;
@@ -193,7 +186,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
 }
 bestScoreDom.textContent = bestScore;
 
-/* ============ 音效 ============ */
+/* 音效 */
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
@@ -247,7 +240,6 @@ function haptic(ms) {
   } catch (e) {}
 }
 
-/* ============ 预加载 ============ */
 function preloadImages() {
   return new Promise((resolve) => {
     let count = 0;
@@ -267,7 +259,7 @@ function preloadImages() {
   });
 }
 
-/* ============ 死亡线绘制（柔光版） ============ */
+/* 死亡线绘制 */
 function drawDeadLine() {
   if (!render || !render.context) return;
   const ctx = render.context;
@@ -318,7 +310,7 @@ function drawDeadLine() {
   ctx.restore();
 }
 
-/* ============ 目标 ============ */
+/* 目标 */
 function generateGoals() {
   const pool = [
     { id: "score50",  text: "单局达到 50 分",  target: 50,  get: () => score,      reward: 15 },
@@ -368,7 +360,7 @@ function checkGoals() {
   renderGoals();
 }
 
-/* ============ 飘字 / 粒子 ============ */
+/* 飘字 */
 function showFloatText(clientX, clientY, text, isCombo, isScore) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -431,7 +423,7 @@ function spawnClickPulseAtCanvas(x, y) {
   setTimeout(() => ring.remove(), 650);
 }
 
-/* ============ 暴击 ============ */
+/* 暴击 */
 function triggerCombo() {
   combo += 1;
   maxCombo = Math.max(maxCombo, combo);
@@ -455,7 +447,6 @@ function comboMultiplier() {
   return 1 + Math.max(0, combo - 1) * 0.2;
 }
 
-/* ============ 震动 / 分数跳动 ============ */
 function shakeScreen() {
   gameWrap.classList.remove("shake");
   void gameWrap.offsetWidth;
@@ -476,7 +467,7 @@ function updateBestScore() {
   }
 }
 
-/* ============ 音效开关 ============ */
+/* 音效开关 */
 function refreshSoundToggle() {
   if (soundOn) {
     soundToggle.textContent = "🔊";
@@ -498,7 +489,7 @@ soundToggle.onclick = (e) => {
   }
 };
 
-/* ============ 初始化 ============ */
+/* 初始化 */
 async function initGame() {
   await preloadImages();
 
@@ -707,7 +698,7 @@ async function initGame() {
   });
 }
 
-/* ============ 生成球 ============ */
+/* 生成球 */
 function spawnBall(x, levelIndex) {
   const lv = LEVEL[levelIndex];
   const scale = (lv.radius / 250) * 1.0;
@@ -729,7 +720,7 @@ function spawnBall(x, levelIndex) {
   balls.push(ball);
 }
 
-/* ============ 合成球 ============ */
+/* 合成球 */
 function createMergedBall(x, y, levelIndex, mult) {
   const lv = LEVEL[levelIndex];
   const scale = (lv.radius / 250) * 1.0;
@@ -785,7 +776,7 @@ function updatePreview() {
   previewImg.src = LEVEL[nextLevelIndex].src;
 }
 
-/* ============ 结束 ============ */
+/* 结束 */
 function gameOver() {
   if (!gameRunning) return;
   gameRunning = false;
@@ -805,7 +796,7 @@ function gameOver() {
   gameOverModal.style.display = "flex";
 }
 
-/* ============ 重开 ============ */
+/* 重开 */
 function restartGame() {
   if (engine) {
     Events.off(engine);
@@ -827,7 +818,7 @@ function restartGame() {
   initGame();
 }
 
-/* ============ 图 7：爱你宝宝 ============ */
+/* 图 7：爱你宝宝 */
 function showLoveTransition() {
   if (loveHideTimer) clearTimeout(loveHideTimer);
   loveTransition.classList.remove("show");
@@ -866,7 +857,7 @@ function showLoveTransition() {
   }, 3600);
 }
 
-/* ============ 图 6：叫爸爸 ============ */
+/* 图 6：叫爸爸 */
 function showCallTransition() {
   callImg.src = LEVEL[6].src;
   callBurst.innerHTML = "";
