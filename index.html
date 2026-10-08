@@ -45,7 +45,6 @@
     50% { opacity: 1; }
   }
 
-  /* 开场动画 */
   .splash {
     position: fixed;
     inset: 0;
@@ -192,7 +191,7 @@
     flex-shrink: 0;
   }
 
-  /* 手机端画布上方：分数 + 最高（桌面隐藏，因为桌面在面板里） */
+  /* 手机端画布上方：分数 + 最高（桌面隐藏） */
   .mobile-stats {
     display: none;
     gap: 10px;
@@ -201,20 +200,21 @@
   .mobile-stats .stat-card {
     flex: 1;
     background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
-    border-radius: 16px;
-    padding: 10px 8px;
+    border-radius: 18px;
+    padding: 12px 8px;
     text-align: center;
     box-shadow:
       inset 0 0 0 1px rgba(255, 210, 225, 0.9),
       0 4px 12px rgba(255, 180, 210, 0.18);
     position: relative;
+    overflow: visible;
   }
   .mobile-stats .stat-card::before {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    border-radius: 16px 16px 0 0;
+    border-radius: 18px 18px 0 0;
     background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
   }
   .mobile-stats .stat-card .label {
@@ -1053,7 +1053,7 @@
     body { padding: 8px 8px 12px; }
     .app { gap: 6px; }
 
-    /* 手机：隐藏顶部大标题 */
+    /* 隐藏顶部大标题 */
     .topbar { display: none; }
 
     .main {
@@ -1062,33 +1062,44 @@
       gap: 8px;
       max-width: 100%;
     }
-    .left-col,
+
+    /* 关键：让 left-col 的所有子元素左右贴齐，宽度由画布决定 */
+    .left-col {
+      align-items: stretch;
+      width: 100%;
+      max-width: 360px;
+      gap: 8px;
+    }
     .right-col {
       width: 100%;
       max-width: 360px;
       gap: 8px;
     }
 
-    /* 手机：显示画布上方分数卡 */
+    /* 分数卡：跟画布对齐 */
     .mobile-stats {
       display: flex;
       gap: 8px;
+      width: 100%;
     }
     .mobile-stats .stat-card {
-      padding: 8px 6px;
-      border-radius: 14px;
+      padding: 10px 8px;
+      border-radius: 18px;
     }
     .mobile-stats .stat-card .label { font-size: 10px; }
     .mobile-stats .stat-card .value { font-size: 20px; }
 
-    /* 手机：隐藏本局目标 + 暴击条 + 桌面面板三框 */
+    /* 隐藏本局目标、暴击条、桌面三框 */
     .goal-box { display: none !important; }
     #comboBadge { display: none !important; }
     .panel-top-stats { display: none !important; }
 
+    /* 画布外框在 left-col 里居中 */
     .game-wrap {
       padding: 6px;
       border-radius: 18px;
+      align-self: center;
+      max-width: 100%;
     }
     canvas { border-radius: 14px; }
 
@@ -1102,11 +1113,13 @@
       left: 12px;
     }
 
+    /* 手机：下方面板（情话 + 重开） */
     .panel {
       width: 100%;
       max-width: 360px;
       padding: 14px 14px 16px;
       border-radius: 18px;
+      align-self: center;
     }
     .panel .tip { display: none; }
 
@@ -1131,6 +1144,9 @@
       top: 8px;
       right: 8px;
     }
+
+    /* 手机端禁用背景飘落花瓣 */
+    .ambient-petal { display: none !important; }
   }
 </style>
 </head>
@@ -1186,7 +1202,7 @@
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
 
-          <!-- 桌面：面板顶部三框（下一个 + 分数 + 最高） -->
+          <!-- 桌面：面板顶部三框 -->
           <div class="panel-top-stats">
             <div class="stat-box next-box">
               <span class="label">下一个</span>
