@@ -182,7 +182,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-shrink: 0;
   }
   .right-col {
@@ -191,67 +191,6 @@
     align-items: center;
     gap: 12px;
     flex-shrink: 0;
-  }
-
-  /* 三框 */
-  .top-stats {
-    display: flex;
-    gap: 10px;
-    align-items: stretch;
-    justify-content: center;
-    width: 100%;
-  }
-  .top-stats .stat-box {
-    flex: 1;
-    background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
-    border-radius: 16px;
-    padding: 8px 6px;
-    text-align: center;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
-      0 4px 12px rgba(255, 180, 210, 0.18);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 62px;
-  }
-  .top-stats .stat-box::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    border-radius: 16px 16px 0 0;
-    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
-  }
-  .top-stats .stat-box .label {
-    font-size: 10px;
-    color: #c99;
-    letter-spacing: 2px;
-    margin-bottom: 2px;
-  }
-  .top-stats .stat-box .value {
-    font-size: 20px;
-    font-weight: 800;
-    color: #d94a76;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
-  .top-stats .stat-box .value.pop {
-    animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  @keyframes pop {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.28); color: #ff7a1a; }
-    100% { transform: scale(1); }
-  }
-  .top-stats .next-box img {
-    width: 42px;
-    height: 42px;
-    object-fit: contain;
-    border-radius: 50%;
-    filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
   }
 
   /* 画布外框 */
@@ -283,6 +222,8 @@
     font-size: 14px;
     opacity: 0.7;
     filter: drop-shadow(0 1px 2px rgba(255, 150, 180, 0.4));
+    z-index: 5;
+    pointer-events: none;
   }
   .game-wrap::before { top: 3px; left: 5px; }
   .game-wrap::after  { bottom: 3px; right: 5px; transform: rotate(180deg); }
@@ -297,6 +238,88 @@
       0 0 0 1px rgba(255, 200, 220, 0.4);
     touch-action: none;
     cursor: pointer;
+  }
+
+  /* 画布内右上角悬浮「下一个」 */
+  .next-badge {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 8px 5px;
+    background: rgba(255, 255, 255, 0.92);
+    border-radius: 14px;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
+      0 6px 14px rgba(255, 140, 180, 0.25);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 6;
+    pointer-events: none;
+  }
+  .next-badge .label {
+    font-size: 9px;
+    color: #c99;
+    letter-spacing: 1px;
+    line-height: 1;
+  }
+  .next-badge img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    border-radius: 50%;
+    filter: drop-shadow(0 2px 4px rgba(255, 140, 180, 0.35));
+  }
+
+  /* 画布下方两个大卡（分数 + 最高） */
+  .bottom-stats {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+  }
+  .bottom-stats .stat-card {
+    flex: 1;
+    background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
+    border-radius: 16px;
+    padding: 10px 8px;
+    text-align: center;
+    box-shadow:
+      inset 0 0 0 1px rgba(255, 210, 225, 0.9),
+      0 4px 12px rgba(255, 180, 210, 0.18);
+    position: relative;
+    overflow: hidden;
+  }
+  .bottom-stats .stat-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    border-radius: 16px 16px 0 0;
+    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
+  }
+  .bottom-stats .stat-card .label {
+    font-size: 10px;
+    color: #c99;
+    letter-spacing: 2px;
+    margin-bottom: 2px;
+  }
+  .bottom-stats .stat-card .value {
+    font-size: 22px;
+    font-weight: 800;
+    color: #d94a76;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
+  .bottom-stats .stat-card .value.pop {
+    animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.25); color: #ff7a1a; }
+    100% { transform: scale(1); }
   }
 
   .aim-line {
@@ -931,10 +954,6 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* 桌面默认：显示桌面三框，隐藏手机三框 */
-  .desktop-only { display: flex; }
-  .mobile-only  { display: none; }
-
   /* ========== 手机端 ========== */
   @media (max-width: 860px) {
     body { padding: 10px 10px 14px; }
@@ -962,39 +981,32 @@
       gap: 8px;
     }
 
-    /* 手机：隐藏桌面三框，显示手机三框 */
-    .desktop-only { display: none !important; }
-    .mobile-only  { display: flex !important; }
-
-    /* 手机：隐藏本局目标（强制，避免被覆盖） */
+    /* 手机：隐藏本局目标 */
     .goal-box { display: none !important; }
-
-    .top-stats {
-      gap: 8px;
-      max-width: 360px;
-    }
-    .top-stats .stat-box {
-      min-height: 62px;
-      padding: 8px 6px;
-      border-radius: 14px;
-    }
-    .top-stats .stat-box .label {
-      font-size: 10px;
-      letter-spacing: 1px;
-    }
-    .top-stats .stat-box .value {
-      font-size: 20px;
-    }
-    .top-stats .next-box img {
-      width: 44px !important;
-      height: 44px !important;
-    }
 
     .game-wrap {
       padding: 6px;
       border-radius: 18px;
     }
     canvas { border-radius: 14px; }
+
+    /* 手机：下一个徽章稍微小一点 */
+    .next-badge {
+      top: 10px;
+      right: 10px;
+      padding: 5px 7px 4px;
+      border-radius: 12px;
+    }
+    .next-badge .label { font-size: 8px; }
+    .next-badge img { width: 30px; height: 30px; }
+
+    .bottom-stats { gap: 8px; }
+    .bottom-stats .stat-card {
+      padding: 8px 6px;
+      border-radius: 14px;
+    }
+    .bottom-stats .stat-card .label { font-size: 10px; margin-bottom: 2px; }
+    .bottom-stats .stat-card .value { font-size: 20px; }
 
     .panel {
       width: 100%;
@@ -1045,22 +1057,6 @@
 
   <div class="app">
     <main class="main">
-      <!-- 手机：画布上方三框 -->
-      <div class="top-stats mobile-only">
-        <div class="stat-box next-box">
-          <span class="label">下一个</span>
-          <img id="nextImgMobile" src="" alt="" />
-        </div>
-        <div class="stat-box">
-          <span class="label">分数</span>
-          <span class="value" id="scoreMobile">0</span>
-        </div>
-        <div class="stat-box">
-          <span class="label">最高</span>
-          <span class="value" id="bestScoreMobile">0</span>
-        </div>
-      </div>
-
       <div class="left-col">
         <div class="game-wrap" id="gameWrap">
           <canvas id="gameCanvas"></canvas>
@@ -1068,28 +1064,29 @@
           <div class="floating-preview" id="floatingPreview">
             <img id="previewImg" src="" alt="" />
           </div>
+          <!-- 画布右上角悬浮「下一个」 -->
+          <div class="next-badge">
+            <span class="label">下一个</span>
+            <img id="nextImg" src="" alt="" />
+          </div>
+        </div>
+
+        <!-- 画布下方两个大卡：分数 + 最高 -->
+        <div class="bottom-stats">
+          <div class="stat-card">
+            <div class="label">分数</div>
+            <div class="value" id="score">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">最高</div>
+            <div class="value" id="bestScore">0</div>
+          </div>
         </div>
       </div>
 
       <div class="right-col">
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
-
-          <!-- 桌面：面板顶部三框 -->
-          <div class="top-stats desktop-only">
-            <div class="stat-box next-box">
-              <span class="label">下一个</span>
-              <img id="nextImg" src="" alt="" />
-            </div>
-            <div class="stat-box">
-              <span class="label">分数</span>
-              <span class="value" id="score">0</span>
-            </div>
-            <div class="stat-box">
-              <span class="label">最高</span>
-              <span class="value" id="bestScore">0</span>
-            </div>
-          </div>
 
           <div id="comboBadge">暴击 ×2</div>
 
