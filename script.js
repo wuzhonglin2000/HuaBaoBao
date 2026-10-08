@@ -6,12 +6,10 @@ const aimLine = document.getElementById("aimLine");
 const floatingPreview = document.getElementById("floatingPreview");
 const previewImg = document.getElementById("previewImg");
 
-/* 桌面元素 */
 const nextImgDom = document.getElementById("nextImg");
 const scoreDom = document.getElementById("score");
 const bestScoreDom = document.getElementById("bestScore");
 
-/* 手机元素 */
 const nextImgMobileDom = document.getElementById("nextImgMobile");
 const scoreMobileDom = document.getElementById("scoreMobile");
 const bestScoreMobileDom = document.getElementById("bestScoreMobile");
@@ -82,7 +80,6 @@ function rollQuote() {
   }
 }
 
-/* 同步更新分数 / 最高 / 下一个（两套 DOM） */
 function syncScore(v) {
   if (scoreDom) scoreDom.textContent = v;
   if (scoreMobileDom) scoreMobileDom.textContent = v;
@@ -136,6 +133,22 @@ function applyDisplaySize() {
   canvasEl.style.height = size.h + "px";
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
+
+  // 手机端：让画布上方的分数卡与画布同宽
+  const mobileStats = document.querySelector(".mobile-stats");
+  if (mobileStats) {
+    if (window.innerWidth <= 860) {
+      // game-wrap padding = 6，所以总宽度 = 画布宽度 + 12
+      const totalW = size.w + 12;
+      mobileStats.style.width = totalW + "px";
+      mobileStats.style.marginLeft = "auto";
+      mobileStats.style.marginRight = "auto";
+    } else {
+      mobileStats.style.width = "";
+      mobileStats.style.marginLeft = "";
+      mobileStats.style.marginRight = "";
+    }
+  }
 }
 
 let deadLineY = 100;
@@ -382,7 +395,6 @@ function checkGoals() {
   renderGoals();
 }
 
-/* 合成飘字（屏幕中央，用于暴击/目标完成） */
 function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -395,7 +407,6 @@ function showFloatText(clientX, clientY, text, isCombo) {
   setTimeout(() => div.remove(), 1000);
 }
 
-/* 得分飘字：在「分数」卡片上原地弹 */
 function showScorePop(text) {
   const card = document.querySelector(".mobile-stats .stat-card");
   if (!card) return;
@@ -788,7 +799,6 @@ function createMergedBall(x, y, levelIndex, mult) {
     syncScore(score);
     bumpScore();
     updateBestScore();
-    // 得分在分数卡上原地弹
     showScorePop("+" + gained);
     checkGoals();
   }, 80);
@@ -939,10 +949,14 @@ function createHeartRain() {
   }
 }
 
+/* 手机端不生成背景飘落花瓣 */
 function startAmbientPetals() {
+  if (window.innerWidth <= 860) return;
+
   const petals = ["🌸", "🌷", "💮", "🌺"];
   setInterval(() => {
     if (document.hidden) return;
+    if (window.innerWidth <= 860) return;
     const p = document.createElement("div");
     p.className = "ambient-petal";
     p.textContent = petals[Math.floor(Math.random() * petals.length)];
@@ -960,6 +974,10 @@ window.addEventListener("resize", () => {
   resizeTimer = setTimeout(() => {
     applyDisplaySize();
   }, 100);
+});
+
+window.addEventListener("orientationchange", () => {
+  setTimeout(applyDisplaySize, 200);
 });
 
 closeOverBtn.onclick = () => {
