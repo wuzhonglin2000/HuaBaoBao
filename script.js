@@ -88,11 +88,13 @@ function comboName(n) {
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H;
+  const ratio = BASE_W / BASE_H; // 320/520 ≈ 0.615
   const isNarrow = vw <= 860;
 
   if (isNarrow) {
-    const maxW = Math.min(vw - 32, 400);
+    // 手机：宽度按屏宽算（左右各留 14px），高度按比例推
+    // 但高度不能超过视口 62%，超过就反过来用高度算宽度
+    const maxW = vw - 28;
     const maxH = vh * 0.62;
     let w = maxW;
     let h = w / ratio;
@@ -102,6 +104,8 @@ function computeDisplaySize() {
     }
     return { w: Math.round(w), h: Math.round(h) };
   }
+
+  // 桌面
   return { w: 375, h: Math.round(375 / ratio) };
 }
 
