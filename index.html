@@ -45,7 +45,6 @@
     50% { opacity: 1; }
   }
 
-  /* 开场动画 */
   .splash {
     position: fixed;
     inset: 0;
@@ -143,7 +142,6 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* 顶部标题 */
   .topbar {
     text-align: center;
     padding: 8px 16px 12px;
@@ -167,7 +165,6 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
   }
 
-  /* 主区 */
   .main {
     position: relative;
     z-index: 1;
@@ -193,7 +190,7 @@
     flex-shrink: 0;
   }
 
-  /* 画布外框（相对定位，悬浮徽章的锚点） */
+  /* 画布外框（悬浮徽章的锚点） */
   .game-wrap {
     position: relative;
     border-radius: 24px;
@@ -240,11 +237,11 @@
     cursor: pointer;
   }
 
-  /* 画布右上角悬浮「下一个」 */
+  /* 画布内右上角悬浮「下一个」 */
   .next-badge {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 18px;
+    right: 18px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -274,7 +271,7 @@
     filter: drop-shadow(0 2px 4px rgba(255, 140, 180, 0.35));
   }
 
-  /* 画布下方两个大卡（分数 + 最高） */
+  /* 画布下方：分数 + 最高 */
   .bottom-stats {
     display: flex;
     gap: 10px;
@@ -290,7 +287,7 @@
       inset 0 0 0 1px rgba(255, 210, 225, 0.9),
       0 4px 12px rgba(255, 180, 210, 0.18);
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
   .bottom-stats .stat-card::before {
     content: "";
@@ -312,14 +309,49 @@
     color: #d94a76;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
+    transition: transform 0.2s ease;
   }
   .bottom-stats .stat-card .value.pop {
-    animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    animation: pop 0.45s cubic-bezier(0.22, 1, 0.36, 1);
   }
   @keyframes pop {
     0% { transform: scale(1); }
-    50% { transform: scale(1.25); color: #ff7a1a; }
+    40% { transform: scale(1.35); color: #ff7a1a; }
     100% { transform: scale(1); }
+  }
+
+  /* 分数卡片弹跳 + 得分飘字 */
+  .bottom-stats .stat-card.score-pop {
+    animation: scoreCardPop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes scoreCardPop {
+    0% { transform: scale(1); }
+    40% {
+      transform: scale(1.08);
+      box-shadow:
+        inset 0 0 0 2px #ffb3cd,
+        0 10px 24px rgba(255, 120, 160, 0.45);
+    }
+    100% { transform: scale(1); }
+  }
+  .bottom-stats .stat-card .score-tip {
+    position: absolute;
+    left: 50%;
+    top: 8px;
+    transform: translateX(-50%);
+    font-weight: 800;
+    font-size: 22px;
+    color: #ff6b95;
+    text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255, 130, 170, 0.85);
+    animation: scoreTipUp 0.9s ease-out forwards;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 3;
+  }
+  @keyframes scoreTipUp {
+    0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+    25% { opacity: 1; transform: translate(-50%, -12px) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
   .aim-line {
@@ -358,7 +390,6 @@
     border-radius: 50%;
   }
 
-  /* 面板 */
   .panel {
     width: 340px;
     background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,250,252,0.92) 100%);
@@ -555,7 +586,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* 飘字 / 粒子 */
   #heartContainer {
     position: fixed;
     top: 0; left: 0;
@@ -596,11 +626,6 @@
     color: #ff7a1a;
     font-size: 28px;
     text-shadow: 0 2px 0 #fff, 0 0 16px rgba(255, 140, 40, 0.9);
-  }
-  .float-text.score {
-    color: #ff6b95;
-    font-size: 22px;
-    text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255, 130, 170, 0.8);
   }
   @keyframes floatUp {
     0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
@@ -654,7 +679,6 @@
     100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
   }
 
-  /* 弹窗 */
   .modal {
     display: none;
     position: fixed;
@@ -803,7 +827,6 @@
   }
   .modal-box button:active { transform: scale(0.97); }
 
-  /* 转场 */
   .love-transition {
     position: fixed;
     inset: 0;
@@ -990,7 +1013,6 @@
     }
     canvas { border-radius: 14px; }
 
-    /* 手机：下一个徽章稍微小一点 */
     .next-badge {
       top: 12px;
       right: 12px;

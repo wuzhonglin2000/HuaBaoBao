@@ -362,17 +362,34 @@ function checkGoals() {
   renderGoals();
 }
 
+/* 通用飘字（合成暴击、目标完成用） */
 function showFloatText(clientX, clientY, text, isCombo, isScore) {
   const div = document.createElement("div");
   let cls = "float-text";
   if (isCombo) cls += " combo";
-  else if (isScore) cls += " score";
   div.className = cls;
   div.textContent = text;
   div.style.left = clientX + "px";
   div.style.top = clientY + "px";
   floatLayer.appendChild(div);
   setTimeout(() => div.remove(), 1000);
+}
+
+/* 得分飘字：直接在「分数」卡片上弹 */
+function showScorePop(text) {
+  if (!scoreDom) return;
+  const card = scoreDom.closest(".stat-card");
+  if (!card) return;
+
+  card.classList.remove("score-pop");
+  void card.offsetWidth;
+  card.classList.add("score-pop");
+
+  const tip = document.createElement("div");
+  tip.className = "score-tip";
+  tip.textContent = text;
+  card.appendChild(tip);
+  setTimeout(() => tip.remove(), 900);
 }
 
 function canvasToClient(x, y) {
@@ -745,10 +762,8 @@ function createMergedBall(x, y, levelIndex, mult) {
     scoreDom.textContent = score;
     bumpScore();
     updateBestScore();
-
-    const pos = canvasToClient(x, y);
-    showFloatText(pos.x, pos.y + 30, "+" + gained, false, true);
-
+    // 得分直接在分数卡片上弹出来
+    showScorePop("+" + gained);
     checkGoals();
   }, 80);
 
