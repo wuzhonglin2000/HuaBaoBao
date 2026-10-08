@@ -99,7 +99,6 @@ function computeDisplaySize() {
     return { w: Math.round(w), h: Math.round(h) };
   }
 
-  // 桌面
   const maxW = 360;
   const maxH = vh * 0.72;
   let w = maxW;

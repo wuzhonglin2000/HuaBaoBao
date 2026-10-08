@@ -193,7 +193,7 @@
     flex-shrink: 0;
   }
 
-  /* 画布外框 */
+  /* 画布外框（相对定位，悬浮徽章的锚点） */
   .game-wrap {
     position: relative;
     border-radius: 24px;
@@ -240,21 +240,21 @@
     cursor: pointer;
   }
 
-  /* 画布内右上角悬浮「下一个」 */
+  /* 画布右上角悬浮「下一个」 */
   .next-badge {
     position: absolute;
-    top: 14px;
-    right: 14px;
+    top: 16px;
+    right: 16px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 2px;
-    padding: 6px 8px 5px;
-    background: rgba(255, 255, 255, 0.92);
+    gap: 3px;
+    padding: 7px 9px 6px;
+    background: rgba(255, 255, 255, 0.94);
     border-radius: 14px;
     box-shadow:
       inset 0 0 0 1px rgba(255, 210, 225, 0.9),
-      0 6px 14px rgba(255, 140, 180, 0.25);
+      0 6px 14px rgba(255, 140, 180, 0.28);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     z-index: 6;
@@ -267,8 +267,8 @@
     line-height: 1;
   }
   .next-badge img {
-    width: 34px;
-    height: 34px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     border-radius: 50%;
     filter: drop-shadow(0 2px 4px rgba(255, 140, 180, 0.35));
@@ -992,13 +992,13 @@
 
     /* 手机：下一个徽章稍微小一点 */
     .next-badge {
-      top: 10px;
-      right: 10px;
-      padding: 5px 7px 4px;
+      top: 12px;
+      right: 12px;
+      padding: 6px 8px 5px;
       border-radius: 12px;
     }
     .next-badge .label { font-size: 8px; }
-    .next-badge img { width: 30px; height: 30px; }
+    .next-badge img { width: 32px; height: 32px; }
 
     .bottom-stats { gap: 8px; }
     .bottom-stats .stat-card {
@@ -1071,7 +1071,7 @@
           </div>
         </div>
 
-        <!-- 画布下方两个大卡：分数 + 最高 -->
+        <!-- 画布下方：分数 + 最高 -->
         <div class="bottom-stats">
           <div class="stat-card">
             <div class="label">分数</div>
