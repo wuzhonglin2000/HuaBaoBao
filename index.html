@@ -7,13 +7,7 @@
 <meta name="theme-color" content="#fff0f5">
 <title>合成花宝宝</title>
 <style>
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body { height: 100%; overscroll-behavior: none; }
 
   body {
@@ -21,8 +15,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-    padding: 16px 16px 24px;
+    padding: 16px;
     background:
       radial-gradient(circle at 20% 10%, #fff5f8 0%, transparent 50%),
       radial-gradient(circle at 80% 90%, #f0f7ff 0%, transparent 50%),
@@ -48,17 +41,6 @@
     animation: breathe 9s ease-in-out infinite;
   }
 
-  body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    background-image: radial-gradient(rgba(255, 180, 210, 0.12) 1px, transparent 1px);
-    background-size: 22px 22px;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.6;
-  }
-
   @keyframes breathe {
     0%, 100% { opacity: 0.85; }
     50% { opacity: 1; }
@@ -72,43 +54,36 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    background:
-      radial-gradient(circle at 50% 40%, #fff5f8 0%, #ffe4ef 45%, #f0d8e8 100%);
+    background: radial-gradient(circle at 50% 40%, #fff5f8 0%, #ffe4ef 45%, #f0d8e8 100%);
     pointer-events: none;
     animation: splashOut 0.9s ease-out 1.5s forwards;
   }
-
   @keyframes splashOut {
     0% { opacity: 1; visibility: visible; }
     100% { opacity: 0; visibility: hidden; }
   }
-
   .splash-inner {
     position: relative;
     text-align: center;
     animation: splashInnerUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-
   @keyframes splashInnerUp {
     0% { transform: translateY(30px); opacity: 0; }
     60% { opacity: 1; }
     100% { transform: translateY(-10px); opacity: 1; }
   }
-
   .splash-icon {
     font-size: 72px;
     line-height: 1;
     filter: drop-shadow(0 10px 24px rgba(255, 120, 160, 0.45));
     animation: iconPop 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
-
   @keyframes iconPop {
     0% { transform: scale(0.2) rotate(-30deg); opacity: 0; }
     55% { transform: scale(1.15) rotate(8deg); opacity: 1; }
     75% { transform: scale(0.95) rotate(-3deg); }
     100% { transform: scale(1) rotate(0); opacity: 1; }
   }
-
   .splash-title {
     margin-top: 18px;
     font-size: 26px;
@@ -120,12 +95,10 @@
     opacity: 0;
     animation: titleIn 0.9s ease-out 0.35s forwards;
   }
-
   @keyframes titleIn {
     0% { opacity: 0; transform: translateY(12px); letter-spacing: 20px; }
     100% { opacity: 1; transform: translateY(0); letter-spacing: 8px; }
   }
-
   .splash-line {
     margin: 18px auto 0;
     width: 0;
@@ -133,26 +106,22 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
     animation: lineGrow 1s ease-out 0.7s forwards;
   }
-
   @keyframes lineGrow {
     0% { width: 0; opacity: 0; }
     100% { width: 120px; opacity: 1; }
   }
-
   .splash-petals {
     position: absolute;
     inset: -200px -100px;
     pointer-events: none;
     overflow: hidden;
   }
-
   .splash-petal {
     position: absolute;
     font-size: 20px;
     opacity: 0;
     animation: petalDrift 3s ease-in forwards;
   }
-
   @keyframes petalDrift {
     0% { opacity: 0; transform: translateY(0) rotate(0deg); }
     20% { opacity: 0.9; }
@@ -165,24 +134,20 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
     width: 100%;
     opacity: 0;
     animation: appIn 0.9s ease-out 1.5s forwards;
   }
-
   @keyframes appIn {
     0% { opacity: 0; transform: translateY(20px) scale(0.98); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
   .topbar {
-    position: relative;
     text-align: center;
-    padding: 6px 16px 10px;
-    z-index: 5;
+    padding: 8px 16px 12px;
   }
-
   .topbar h1 {
     font-size: 22px;
     color: #d94a76;
@@ -194,7 +159,6 @@
     align-items: center;
     gap: 10px;
   }
-
   .topbar h1::before,
   .topbar h1::after {
     content: "";
@@ -203,31 +167,47 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
   }
 
+  /* 桌面：左右并排 */
   .main {
     position: relative;
     z-index: 1;
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 24px;
     width: 100%;
-    max-width: 460px;
+    max-width: 900px;
   }
 
+  .left-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  .right-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* 三框 */
   .top-stats {
     display: flex;
-    gap: 8px;
+    gap: 10px;
     align-items: stretch;
     justify-content: center;
     width: 100%;
-    max-width: 420px;
   }
-
   .top-stats .stat-box {
     flex: 1;
     background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
-    border-radius: 14px;
-    padding: 6px 4px;
+    border-radius: 16px;
+    padding: 8px 6px;
     text-align: center;
     box-shadow:
       inset 0 0 0 1px rgba(255, 210, 225, 0.9),
@@ -237,25 +217,22 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 52px;
+    min-height: 62px;
   }
-
   .top-stats .stat-box::before {
     content: "";
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    border-radius: 14px 14px 0 0;
+    border-radius: 16px 16px 0 0;
     background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
   }
-
   .top-stats .stat-box .label {
     font-size: 10px;
     color: #c99;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
     margin-bottom: 2px;
   }
-
   .top-stats .stat-box .value {
     font-size: 20px;
     font-weight: 800;
@@ -263,28 +240,26 @@
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
   }
-
   .top-stats .stat-box .value.pop {
     animation: pop 0.4s cubic-bezier(0.22, 1, 0.36, 1);
   }
-
   @keyframes pop {
     0% { transform: scale(1); }
     50% { transform: scale(1.28); color: #ff7a1a; }
     100% { transform: scale(1); }
   }
-
   .top-stats .next-box img {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
     object-fit: contain;
     border-radius: 50%;
     filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
   }
 
+  /* 画布外框 */
   .game-wrap {
     position: relative;
-    border-radius: 22px;
+    border-radius: 24px;
     padding: 8px;
     background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
     box-shadow:
@@ -295,9 +270,7 @@
     flex-shrink: 0;
     transition: transform 0.3s ease;
   }
-
   .game-wrap.shake { animation: shake 0.28s ease; }
-
   @keyframes shake {
     0%, 100% { transform: translate(0, 0); }
     20% { transform: translate(-4px, 2px); }
@@ -305,7 +278,6 @@
     60% { transform: translate(-3px, -2px); }
     80% { transform: translate(3px, 2px); }
   }
-
   .game-wrap::before,
   .game-wrap::after {
     content: "🌸";
@@ -319,7 +291,7 @@
 
   canvas {
     display: block;
-    border-radius: 16px;
+    border-radius: 18px;
     background: #fff9ec;
     box-shadow:
       inset 0 0 60px rgba(255, 210, 225, 0.6),
@@ -358,7 +330,6 @@
     display: none;
     overflow: hidden;
   }
-
   .floating-preview img {
     width: 100%;
     height: 100%;
@@ -366,14 +337,12 @@
     border-radius: 50%;
   }
 
+  /* 面板 */
   .panel {
-    width: 100%;
-    max-width: 420px;
-    background: linear-gradient(180deg,
-      rgba(255,255,255,0.98) 0%,
-      rgba(255,250,252,0.92) 100%);
-    border-radius: 22px;
-    padding: 12px 14px 14px;
+    width: 340px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(255,250,252,0.92) 100%);
+    border-radius: 24px;
+    padding: 14px 16px 16px;
     box-shadow:
       0 0 0 1px rgba(255, 200, 220, 0.7),
       0 0 0 5px rgba(255, 255, 255, 0.55),
@@ -404,7 +373,6 @@
     justify-content: center;
     padding: 0;
   }
-
   .sound-toggle:active { transform: scale(0.9); }
   .sound-toggle.off { opacity: 0.55; }
 
@@ -423,7 +391,6 @@
     animation: quoteFade 0.6s ease;
     position: relative;
   }
-
   .panel-tag-icon {
     position: absolute;
     top: -16px;
@@ -436,13 +403,11 @@
     filter: drop-shadow(0 4px 8px rgba(255, 140, 180, 0.4));
     pointer-events: none;
   }
-
   .panel-tag span {
     line-height: 1.4;
     text-align: center;
     display: block;
   }
-
   @keyframes quoteFade {
     0% { opacity: 0; transform: translateY(-4px); }
     100% { opacity: 1; transform: translateY(0); }
@@ -463,7 +428,6 @@
     position: relative;
     overflow: hidden;
   }
-
   #comboBadge::before {
     content: "";
     position: absolute;
@@ -472,7 +436,6 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
     animation: shine 1.5s linear infinite;
   }
-
   @keyframes shine {
     0% { left: -100%; }
     100% { left: 100%; }
@@ -480,14 +443,13 @@
 
   .goal-box {
     background: linear-gradient(180deg, #f8fcff 0%, #f0f8ff 100%);
-    border-radius: 14px;
-    padding: 10px 12px;
-    margin-bottom: 10px;
+    border-radius: 16px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
     box-shadow:
       inset 0 0 0 1px rgba(200, 225, 245, 0.8),
       0 4px 10px rgba(180, 210, 240, 0.15);
   }
-
   .goal-box h4 {
     font-size: 11px;
     color: #7aa8c8;
@@ -499,7 +461,6 @@
     justify-content: center;
     gap: 8px;
   }
-
   .goal-box h4::before,
   .goal-box h4::after {
     content: "";
@@ -507,7 +468,6 @@
     height: 1px;
     background: linear-gradient(90deg, transparent, #c5ddef, transparent);
   }
-
   .goal-item {
     font-size: 12px;
     color: #5a6a78;
@@ -517,31 +477,26 @@
     margin-bottom: 8px;
   }
   .goal-item:last-child { margin-bottom: 0; }
-
   .goal-item .goal-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 6px;
   }
-
   .goal-item .goal-progress {
     font-weight: 700;
     color: #7aa8c8;
     white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-
   .goal-item.done { color: #2aa06a; }
   .goal-item.done .goal-progress { color: #2aa06a; }
-
   .goal-bar {
     height: 5px;
     background: #e5eef5;
     border-radius: 3px;
     overflow: hidden;
   }
-
   .goal-bar > i {
     display: block;
     height: 100%;
@@ -549,7 +504,6 @@
     transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
     border-radius: 3px;
   }
-
   .goal-item.done .goal-bar > i {
     background: linear-gradient(90deg, #7ee0a8, #2aa06a);
   }
@@ -572,7 +526,6 @@
     position: relative;
     overflow: hidden;
   }
-
   #restartBtn::before {
     content: "";
     position: absolute;
@@ -581,7 +534,6 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
     animation: shine 2.5s ease-in-out infinite;
   }
-
   #restartBtn:active {
     transform: scale(0.97);
     box-shadow: 0 4px 12px rgba(255, 77, 126, 0.5);
@@ -596,6 +548,7 @@
     letter-spacing: 0.5px;
   }
 
+  /* 飘字 / 粒子 */
   #heartContainer {
     position: fixed;
     top: 0; left: 0;
@@ -605,13 +558,11 @@
     overflow: hidden;
     z-index: 9;
   }
-
   .heart {
     position: absolute;
     font-size: 22px;
     animation: fall linear forwards;
   }
-
   @keyframes fall {
     0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
     100% { transform: translateY(100dvh) rotate(360deg); opacity: 0; }
@@ -624,7 +575,6 @@
     z-index: 12;
     overflow: hidden;
   }
-
   .float-text {
     position: absolute;
     font-weight: 800;
@@ -635,19 +585,16 @@
     font-size: 20px;
     font-family: "PingFang SC", "STKaiti", serif;
   }
-
   .float-text.combo {
     color: #ff7a1a;
     font-size: 28px;
     text-shadow: 0 2px 0 #fff, 0 0 16px rgba(255, 140, 40, 0.9);
   }
-
   .float-text.score {
     color: #ff6b95;
     font-size: 22px;
     text-shadow: 0 2px 0 #fff, 0 0 10px rgba(255, 130, 170, 0.8);
   }
-
   @keyframes floatUp {
     0% { transform: translate(-50%, 0) scale(0.6); opacity: 0; }
     25% { transform: translate(-50%, -12px) scale(1.15); opacity: 1; }
@@ -662,7 +609,6 @@
     animation: burstFly 0.7s ease-out forwards;
     will-change: transform, opacity;
   }
-
   @keyframes burstFly {
     0% { opacity: 1; transform: translate(-50%, -50%) scale(0.4); }
     100% {
@@ -681,7 +627,6 @@
     pointer-events: none;
     z-index: 11;
   }
-
   @keyframes pulseRing {
     0% { transform: translate(-50%, -50%) scale(0.4); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
@@ -697,26 +642,12 @@
     pointer-events: none;
     z-index: 11;
   }
-
   @keyframes flashOut {
     0% { transform: translate(-50%, -50%) scale(0.3); opacity: 1; }
     100% { transform: translate(-50%, -50%) scale(3); opacity: 0; }
   }
 
-  .ambient-petal {
-    position: fixed;
-    top: -30px;
-    pointer-events: none;
-    z-index: 0;
-    opacity: 0.55;
-    animation: petalFall linear forwards;
-  }
-
-  @keyframes petalFall {
-    0% { transform: translateY(0) rotate(0); }
-    100% { transform: translateY(110dvh) rotate(360deg); opacity: 0; }
-  }
-
+  /* 弹窗 */
   .modal {
     display: none;
     position: fixed;
@@ -731,7 +662,6 @@
     align-items: center;
     padding: 20px;
   }
-
   .modal-box {
     background: linear-gradient(180deg, #ffffff 0%, #fff9fc 100%);
     border-radius: 28px;
@@ -746,12 +676,10 @@
     position: relative;
     animation: modalIn 0.5s cubic-bezier(0.22, 1, 0.36, 1);
   }
-
   @keyframes modalIn {
     0% { transform: scale(0.85) translateY(20px); opacity: 0; }
     100% { transform: scale(1) translateY(0); opacity: 1; }
   }
-
   .modal-box::before {
     content: "🌸";
     position: absolute;
@@ -772,7 +700,6 @@
     padding: 0;
     letter-spacing: 0;
   }
-
   .modal-emoji {
     font-size: 56px;
     line-height: 1;
@@ -780,13 +707,11 @@
     animation: emojiPop 0.7s cubic-bezier(0.22, 1, 0.36, 1);
     filter: drop-shadow(0 4px 12px rgba(255, 140, 180, 0.35));
   }
-
   @keyframes emojiPop {
     0% { transform: scale(0.3) rotate(-20deg); }
     60% { transform: scale(1.2) rotate(8deg); }
     100% { transform: scale(1) rotate(0); }
   }
-
   .modal-box h2 {
     color: #d94a76;
     margin-bottom: 8px;
@@ -794,7 +719,6 @@
     letter-spacing: 4px;
     font-weight: 500;
   }
-
   .modal-big-score {
     font-size: 56px;
     font-weight: 800;
@@ -804,14 +728,12 @@
     font-variant-numeric: tabular-nums;
     font-family: "PingFang SC", "STKaiti", serif;
   }
-
   .modal-sub {
     font-size: 11px;
     color: #c99;
     margin: 6px 0 14px;
     letter-spacing: 4px;
   }
-
   .modal-quote {
     font-size: 13px;
     color: #d88aa8;
@@ -821,21 +743,18 @@
     letter-spacing: 1px;
     padding: 0 6px;
   }
-
   .modal-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 8px;
     margin-bottom: 22px;
   }
-
   .modal-stat {
     background: linear-gradient(180deg, #fff 0%, #fff5fa 100%);
     border-radius: 14px;
     padding: 10px 8px;
     box-shadow: inset 0 0 0 1px rgba(255, 210, 225, 0.7);
   }
-
   .modal-stat span:first-child {
     display: block;
     font-size: 10px;
@@ -843,14 +762,12 @@
     margin-bottom: 4px;
     letter-spacing: 2px;
   }
-
   .modal-stat span:last-child {
     font-size: 18px;
     font-weight: 700;
     color: #d94a76;
     font-variant-numeric: tabular-nums;
   }
-
   .modal-box button {
     width: 100%;
     padding: 14px;
@@ -869,7 +786,6 @@
     position: relative;
     overflow: hidden;
   }
-
   .modal-box button::before {
     content: "";
     position: absolute;
@@ -878,9 +794,9 @@
     background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
     animation: shine 2.5s ease-in-out infinite;
   }
-
   .modal-box button:active { transform: scale(0.97); }
 
+  /* 转场 */
   .love-transition {
     position: fixed;
     inset: 0;
@@ -893,9 +809,7 @@
     visibility: hidden;
     transition: opacity 0.6s ease, visibility 0.6s ease;
   }
-
   .love-transition.show { opacity: 1; visibility: visible; }
-
   .love-glow {
     position: absolute;
     inset: 0;
@@ -908,17 +822,14 @@
     opacity: 0;
     transform: scale(0.6);
   }
-
   .love-transition.show .love-glow {
     animation: glowIn 1.2s ease-out forwards;
   }
-
   @keyframes glowIn {
     0% { opacity: 0; transform: scale(0.6); }
     60% { opacity: 1; transform: scale(1.05); }
     100% { opacity: 1; transform: scale(1); }
   }
-
   .love-content {
     position: relative;
     z-index: 2;
@@ -928,7 +839,6 @@
     gap: 20px;
     padding: 0 20px;
   }
-
   .love-img-wrap {
     width: 160px;
     height: 160px;
@@ -944,18 +854,15 @@
     opacity: 0;
     transform: scale(0.3) rotate(-25deg);
   }
-
   .love-transition.show .love-img-wrap {
     animation: imgPop 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.15s forwards;
   }
-
   @keyframes imgPop {
     0% { opacity: 0; transform: scale(0.3) rotate(-25deg); }
     55% { opacity: 1; transform: scale(1.15) rotate(6deg); }
     75% { transform: scale(0.96) rotate(-3deg); }
     100% { opacity: 1; transform: scale(1) rotate(0deg); }
   }
-
   .love-img-wrap img {
     width: 78%;
     height: 78%;
@@ -963,7 +870,6 @@
     border-radius: 50%;
     filter: drop-shadow(0 6px 14px rgba(255, 90, 140, 0.45));
   }
-
   .love-text {
     font-size: 36px;
     font-weight: 800;
@@ -978,16 +884,13 @@
     opacity: 0;
     transform: translateY(24px) scale(0.9);
   }
-
   .love-transition.show .love-text {
     animation: textRise 1s cubic-bezier(0.22, 1, 0.36, 1) 0.9s forwards;
   }
-
   @keyframes textRise {
     0% { opacity: 0; transform: translateY(24px) scale(0.9); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
-
   .love-burst {
     position: absolute;
     left: 50%;
@@ -996,7 +899,6 @@
     height: 0;
     z-index: 1;
   }
-
   .love-particle {
     position: absolute;
     left: 0;
@@ -1005,11 +907,9 @@
     opacity: 0;
     will-change: transform, opacity;
   }
-
   .love-transition.show .love-particle {
     animation: particleFly 1.6s ease-out forwards;
   }
-
   @keyframes particleFly {
     0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4) rotate(0deg); }
     20% { opacity: 1; }
@@ -1020,7 +920,6 @@
         scale(1.1) rotate(var(--rot));
     }
   }
-
   .love-transition.gold .love-glow {
     background:
       radial-gradient(circle at 50% 50%,
@@ -1047,6 +946,110 @@
       0 0 56px rgba(255, 110, 10, 0.6),
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
+
+  /* 手机竖屏：上下堆叠，画布矮一点 */
+  @media (max-width: 860px) {
+    body { padding: 10px 10px 14px; }
+
+    .topbar {
+      padding: 4px 12px 8px;
+    }
+    .topbar h1 {
+      font-size: 17px;
+      letter-spacing: 3px;
+      gap: 6px;
+    }
+    .topbar h1::before,
+    .topbar h1::after { width: 16px; }
+
+    .app { gap: 8px; }
+
+    .main {
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      max-width: 100%;
+    }
+
+    .left-col,
+    .right-col {
+      width: 100%;
+      max-width: 360px;
+      gap: 8px;
+    }
+
+    .top-stats {
+      gap: 6px;
+      max-width: 360px;
+    }
+    .top-stats .stat-box {
+      min-height: 48px;
+      padding: 4px 4px;
+      border-radius: 12px;
+    }
+    .top-stats .stat-box .label { font-size: 9px; letter-spacing: 1px; }
+    .top-stats .stat-box .value { font-size: 17px; }
+    .top-stats .next-box img { width: 26px; height: 26px; }
+
+    .game-wrap {
+      padding: 6px;
+      border-radius: 18px;
+    }
+    canvas { border-radius: 14px; }
+
+    .panel {
+      width: 100%;
+      max-width: 360px;
+      padding: 10px 12px 12px;
+      border-radius: 18px;
+    }
+
+    .panel .tip { display: none; }
+
+    .panel-tag {
+      font-size: 11px;
+      padding: 0 28px;
+      margin-bottom: 8px;
+      min-height: 18px;
+    }
+    .panel-tag-icon {
+      width: 32px;
+      height: 32px;
+      top: -10px;
+      left: -10px;
+    }
+
+    .goal-box {
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      border-radius: 12px;
+    }
+    .goal-box h4 {
+      font-size: 10px;
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+    }
+    .goal-item {
+      font-size: 11px;
+      margin-bottom: 6px;
+    }
+    .goal-bar { height: 4px; }
+
+    #restartBtn {
+      padding: 10px;
+      font-size: 13px;
+      letter-spacing: 2px;
+      border-radius: 12px;
+    }
+
+    .sound-toggle {
+      width: 24px;
+      height: 24px;
+      font-size: 11px;
+      top: 8px;
+      right: 8px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -1066,52 +1069,58 @@
 
   <div class="app">
     <main class="main">
-      <div class="top-stats">
-        <div class="stat-box next-box">
-          <span class="label">下一个</span>
-          <img id="nextImg" src="" alt="" />
+      <!-- 左列：三框 + 画布 -->
+      <div class="left-col">
+        <div class="top-stats">
+          <div class="stat-box next-box">
+            <span class="label">下一个</span>
+            <img id="nextImg" src="" alt="" />
+          </div>
+          <div class="stat-box">
+            <span class="label">分数</span>
+            <span class="value" id="score">0</span>
+          </div>
+          <div class="stat-box">
+            <span class="label">最高</span>
+            <span class="value" id="bestScore">0</span>
+          </div>
         </div>
-        <div class="stat-box">
-          <span class="label">分数</span>
-          <span class="value" id="score">0</span>
-        </div>
-        <div class="stat-box">
-          <span class="label">最高</span>
-          <span class="value" id="bestScore">0</span>
+
+        <div class="game-wrap" id="gameWrap">
+          <canvas id="gameCanvas"></canvas>
+          <div class="aim-line" id="aimLine"></div>
+          <div class="floating-preview" id="floatingPreview">
+            <img id="previewImg" src="" alt="" />
+          </div>
         </div>
       </div>
 
-      <div class="game-wrap" id="gameWrap">
-        <canvas id="gameCanvas"></canvas>
-        <div class="aim-line" id="aimLine"></div>
-        <div class="floating-preview" id="floatingPreview">
-          <img id="previewImg" src="" alt="" />
+      <!-- 右列：目标 + 情话 + 重开 -->
+      <div class="right-col">
+        <div class="panel">
+          <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
+
+          <div id="comboBadge">暴击 ×2</div>
+
+          <div class="goal-box">
+            <h4>本局目标</h4>
+            <div id="goalList"></div>
+          </div>
+
+          <div class="panel-tag" id="panelTagWrap">
+            <img class="panel-tag-icon" src="img/qm.png" alt="" />
+            <span id="panelTag">花宝宝，今天也超级想你</span>
+          </div>
+
+          <button id="restartBtn">重 新 开 始</button>
+
+          <p class="tip">
+            移动 / 拖动预览落点<br />
+            点击投放，相同图片合成更大一级<br />
+            连续合成触发暴击，分数翻倍<br />
+            堆到红线上方游戏结束
+          </p>
         </div>
-      </div>
-
-      <div class="panel">
-        <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
-
-        <div id="comboBadge">暴击 ×2</div>
-
-        <div class="goal-box">
-          <h4>本局目标</h4>
-          <div id="goalList"></div>
-        </div>
-
-        <div class="panel-tag" id="panelTagWrap">
-          <img class="panel-tag-icon" src="img/qm.png" alt="" />
-          <span id="panelTag">花宝宝，今天也超级想你</span>
-        </div>
-
-        <button id="restartBtn">重 新 开 始</button>
-
-        <p class="tip">
-          移动 / 拖动预览落点<br />
-          点击投放，相同图片合成更大一级<br />
-          连续合成触发暴击，分数翻倍<br />
-          堆到红线上方游戏结束
-        </p>
       </div>
     </main>
   </div>
