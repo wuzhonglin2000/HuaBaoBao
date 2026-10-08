@@ -247,60 +247,8 @@
     100% { transform: scale(1); }
   }
   .top-stats .next-box img {
-    width: 36px;
-    height: 36px;
-    object-fit: contain;
-    border-radius: 50%;
-    filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
-  }
-
-  /* 桌面：面板里的三框 */
-  .panel-stats {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-    width: 100%;
-  }
-  .panel-stats .stat-box {
-    flex: 1;
-    background: linear-gradient(180deg, #fff 0%, #fff5fa 100%);
-    border-radius: 14px;
-    padding: 8px 6px;
-    text-align: center;
-    box-shadow:
-      inset 0 0 0 1px rgba(255, 210, 225, 0.8),
-      0 4px 10px rgba(255, 180, 210, 0.12);
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 58px;
-  }
-  .panel-stats .stat-box::before {
-    content: "";
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    border-radius: 14px 14px 0 0;
-    background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
-  }
-  .panel-stats .stat-box .label {
-    font-size: 10px;
-    color: #c99;
-    letter-spacing: 2px;
-    margin-bottom: 2px;
-  }
-  .panel-stats .stat-box .value {
-    font-size: 20px;
-    font-weight: 800;
-    color: #d94a76;
-    line-height: 1.1;
-    font-variant-numeric: tabular-nums;
-  }
-  .panel-stats .next-box img {
-    width: 34px;
-    height: 34px;
+    width: 42px;
+    height: 42px;
     object-fit: contain;
     border-radius: 50%;
     filter: drop-shadow(0 2px 5px rgba(255, 140, 180, 0.35));
@@ -983,7 +931,7 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* 桌面显示：面板里的三框，隐藏画布上方三框 */
+  /* 桌面默认显示 / 隐藏规则 */
   .desktop-only { display: flex; }
   .mobile-only  { display: none; }
 
@@ -1018,18 +966,21 @@
     .desktop-only { display: none; }
     .mobile-only  { display: flex; }
 
+    /* 手机：隐藏本局目标 */
+    .desktop-goal { display: none; }
+
     .top-stats {
       gap: 6px;
       max-width: 360px;
     }
     .top-stats .stat-box {
-      min-height: 48px;
-      padding: 4px 4px;
+      min-height: 56px;
+      padding: 6px 4px;
       border-radius: 12px;
     }
     .top-stats .stat-box .label { font-size: 9px; letter-spacing: 1px; }
-    .top-stats .stat-box .value { font-size: 17px; }
-    .top-stats .next-box img { width: 26px; height: 26px; }
+    .top-stats .stat-box .value { font-size: 18px; }
+    .top-stats .next-box img { width: 34px; height: 34px; }
 
     .game-wrap {
       padding: 6px;
@@ -1040,45 +991,29 @@
     .panel {
       width: 100%;
       max-width: 360px;
-      padding: 10px 12px 12px;
+      padding: 12px 12px 14px;
       border-radius: 18px;
     }
     .panel .tip { display: none; }
 
     .panel-tag {
-      font-size: 11px;
-      padding: 0 28px;
-      margin-bottom: 8px;
-      min-height: 18px;
+      font-size: 12px;
+      padding: 0 32px;
+      margin-bottom: 10px;
+      min-height: 20px;
     }
-
-    .goal-box {
-      padding: 8px 10px;
-      margin-bottom: 8px;
-      border-radius: 12px;
-    }
-    .goal-box h4 {
-      font-size: 10px;
-      margin-bottom: 6px;
-      letter-spacing: 2px;
-    }
-    .goal-item {
-      font-size: 11px;
-      margin-bottom: 6px;
-    }
-    .goal-bar { height: 4px; }
 
     #restartBtn {
-      padding: 10px;
-      font-size: 13px;
+      padding: 12px;
+      font-size: 14px;
       letter-spacing: 2px;
       border-radius: 12px;
     }
 
     .sound-toggle {
-      width: 24px;
-      height: 24px;
-      font-size: 11px;
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
       top: 8px;
       right: 8px;
     }
@@ -1150,7 +1085,7 @@
 
           <div id="comboBadge">暴击 ×2</div>
 
-          <div class="goal-box">
+          <div class="goal-box desktop-goal">
             <h4>本局目标</h4>
             <div id="goalList"></div>
           </div>
