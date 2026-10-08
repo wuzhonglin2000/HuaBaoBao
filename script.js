@@ -6,9 +6,15 @@ const aimLine = document.getElementById("aimLine");
 const floatingPreview = document.getElementById("floatingPreview");
 const previewImg = document.getElementById("previewImg");
 
+/* 桌面元素 */
 const nextImgDom = document.getElementById("nextImg");
 const scoreDom = document.getElementById("score");
 const bestScoreDom = document.getElementById("bestScore");
+
+/* 手机元素 */
+const nextImgMobileDom = document.getElementById("nextImgMobile");
+const scoreMobileDom = document.getElementById("scoreMobile");
+const bestScoreMobileDom = document.getElementById("bestScoreMobile");
 
 const comboBadge = document.getElementById("comboBadge");
 const goalListDom = document.getElementById("goalList");
@@ -74,6 +80,20 @@ function rollQuote() {
     void panelTagWrap.offsetWidth;
     panelTagWrap.style.animation = "";
   }
+}
+
+/* 同步更新分数 / 最高 / 下一个（两套 DOM） */
+function syncScore(v) {
+  if (scoreDom) scoreDom.textContent = v;
+  if (scoreMobileDom) scoreMobileDom.textContent = v;
+}
+function syncBest(v) {
+  if (bestScoreDom) bestScoreDom.textContent = v;
+  if (bestScoreMobileDom) bestScoreMobileDom.textContent = v;
+}
+function syncNext(src) {
+  if (nextImgDom) nextImgDom.src = src;
+  if (nextImgMobileDom) nextImgMobileDom.src = src;
 }
 
 const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
@@ -188,7 +208,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
   bestScore = 0;
   localStorage.setItem("flowerBestScore", 0);
 }
-bestScoreDom.textContent = bestScore;
+syncBest(bestScore);
 
 let audioCtx = null;
 function ensureAudio() {
@@ -352,9 +372,9 @@ function checkGoals() {
       g.done = true;
       changed = true;
       score += g.reward;
-      scoreDom.textContent = score;
+      syncScore(score);
       bumpScore();
-      showFloatText(window.innerWidth / 2, 160, "✅ 目标完成 +" + g.reward, false, false);
+      showFloatText(window.innerWidth / 2, 160, "✅ 目标完成 +" + g.reward, false);
       sfxCombo(3);
     }
   });
@@ -362,8 +382,8 @@ function checkGoals() {
   renderGoals();
 }
 
-/* 通用飘字（合成暴击、目标完成用） */
-function showFloatText(clientX, clientY, text, isCombo, isScore) {
+/* 合成飘字（屏幕中央，用于暴击/目标完成） */
+function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
   if (isCombo) cls += " combo";
@@ -375,10 +395,9 @@ function showFloatText(clientX, clientY, text, isCombo, isScore) {
   setTimeout(() => div.remove(), 1000);
 }
 
-/* 得分飘字：直接在「分数」卡片上弹 */
+/* 得分飘字：在「分数」卡片上原地弹 */
 function showScorePop(text) {
-  if (!scoreDom) return;
-  const card = scoreDom.closest(".stat-card");
+  const card = document.querySelector(".mobile-stats .stat-card");
   if (!card) return;
 
   card.classList.remove("score-pop");
@@ -445,7 +464,7 @@ function triggerCombo() {
   combo += 1;
   maxCombo = Math.max(maxCombo, combo);
 
-  if (combo >= 2) {
+  if (combo >= 2 && comboBadge) {
     const name = comboName(combo);
     comboBadge.style.display = "block";
     comboBadge.textContent =
@@ -456,7 +475,7 @@ function triggerCombo() {
   if (comboTimer) clearTimeout(comboTimer);
   comboTimer = setTimeout(() => {
     combo = 0;
-    comboBadge.style.display = "none";
+    if (comboBadge) comboBadge.style.display = "none";
   }, 2000);
 }
 
@@ -471,16 +490,23 @@ function shakeScreen() {
 }
 
 function bumpScore() {
-  scoreDom.classList.remove("pop");
-  void scoreDom.offsetWidth;
-  scoreDom.classList.add("pop");
+  if (scoreDom) {
+    scoreDom.classList.remove("pop");
+    void scoreDom.offsetWidth;
+    scoreDom.classList.add("pop");
+  }
+  if (scoreMobileDom) {
+    scoreMobileDom.classList.remove("pop");
+    void scoreMobileDom.offsetWidth;
+    scoreMobileDom.classList.add("pop");
+  }
 }
 
 function updateBestScore() {
   if (score > bestScore) {
     bestScore = score;
     localStorage.setItem("flowerBestScore", bestScore);
-    bestScoreDom.textContent = bestScore;
+    syncBest(bestScore);
   }
 }
 
@@ -524,8 +550,8 @@ async function initGame() {
   startTime = Date.now();
 
   if (comboTimer) clearTimeout(comboTimer);
-  comboBadge.style.display = "none";
-  scoreDom.textContent = "0";
+  if (comboBadge) comboBadge.style.display = "none";
+  syncScore(0);
 
   rollQuote();
   refreshSoundToggle();
@@ -685,7 +711,7 @@ async function initGame() {
 
       if (combo >= 2) {
         const pos = canvasToClient(newX, newY);
-        showFloatText(pos.x, pos.y - 30, comboName(combo) + " ×" + combo, true, false);
+        showFloatText(pos.x, pos.y - 30, comboName(combo) + " ×" + combo, true);
       }
 
       checkGoals();
@@ -759,10 +785,10 @@ function createMergedBall(x, y, levelIndex, mult) {
 
   setTimeout(() => {
     score += gained;
-    scoreDom.textContent = score;
+    syncScore(score);
     bumpScore();
     updateBestScore();
-    // 得分直接在分数卡片上弹出来
+    // 得分在分数卡上原地弹
     showScorePop("+" + gained);
     checkGoals();
   }, 80);
@@ -783,7 +809,7 @@ function createMergedBall(x, y, levelIndex, mult) {
 }
 
 function updatePreview() {
-  nextImgDom.src = LEVEL[nextLevelIndex].src;
+  syncNext(LEVEL[nextLevelIndex].src);
   previewImg.src = LEVEL[nextLevelIndex].src;
 }
 
@@ -933,7 +959,7 @@ window.addEventListener("resize", () => {
   if (resizeTimer) clearTimeout(resizeTimer);
   resizeTimer = setTimeout(() => {
     applyDisplaySize();
-  }, 150);
+  }, 100);
 });
 
 closeOverBtn.onclick = () => {
