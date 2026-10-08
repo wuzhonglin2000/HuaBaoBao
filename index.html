@@ -86,7 +86,6 @@
   .splash-inner {
     position: relative;
     text-align: center;
-    transform: translateY(0);
     animation: splashInnerUp 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
@@ -318,7 +317,6 @@
     position: relative;
   }
 
-  /* 情话：图标（斜挂左上角）+ 文案 */
   .panel-tag {
     display: flex;
     align-items: center;
@@ -326,7 +324,6 @@
     gap: 6px;
     min-height: 22px;
     margin-bottom: 12px;
-    /* 左右留出 36px，避开右上角音效按钮和左上角斜挂签名 */
     padding: 0 36px;
     font-size: 12px;
     letter-spacing: 1px;
@@ -336,7 +333,6 @@
     position: relative;
   }
 
-  /* 斜挂左上角的签名 */
   .panel-tag-icon {
     position: absolute;
     top: -18px;
@@ -1072,49 +1068,149 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
+  /* ============ 手机端优化 ============ */
   @media (max-width: 860px) {
     body {
-      padding: 88px 12px 20px;
+      padding: 58px 10px 12px;
       align-items: flex-start;
+      gap: 0;
+    }
+
+    .topbar {
+      padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 8px;
+    }
+
+    .topbar h1 {
+      font-size: 17px;
+      letter-spacing: 3px;
+      gap: 6px;
+    }
+
+    .topbar h1::before,
+    .topbar h1::after {
+      width: 16px;
     }
 
     .main {
       flex-direction: column;
       align-items: center;
-      gap: 16px;
-      max-width: 420px;
+      gap: 10px;
+      max-width: 100%;
+      width: 100%;
     }
 
-    .game-wrap { padding: 8px; border-radius: 22px; }
-    canvas { border-radius: 14px; }
+    .game-wrap {
+      padding: 6px;
+      border-radius: 18px;
+    }
+
+    canvas {
+      border-radius: 12px;
+    }
 
     .panel {
       width: 100%;
-      max-width: 100%;
-      padding: 18px 16px;
-      border-radius: 22px;
+      max-width: 340px;
+      padding: 14px 12px;
+      border-radius: 20px;
     }
 
     .panel .tip { display: none; }
 
-    .love-img-wrap { width: 130px; height: 130px; }
-    .love-text { font-size: 28px; letter-spacing: 5px; }
-    .topbar h1 { font-size: 19px; letter-spacing: 4px; }
+    .panel-tag {
+      font-size: 11px;
+      padding: 0 32px;
+      margin-bottom: 10px;
+      min-height: 18px;
+    }
 
-    /* 手机端签名稍微缩小一点，避免跑出屏幕 */
     .panel-tag-icon {
-      width: 40px;
-      height: 40px;
+      width: 36px;
+      height: 36px;
       top: -14px;
       left: -14px;
     }
+
+    .next-preview-box {
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 16px;
+    }
+
+    .next-preview-box p {
+      font-size: 10px;
+      margin-bottom: 4px;
+      letter-spacing: 2px;
+    }
+
+    #nextImg {
+      width: 56px;
+      height: 56px;
+    }
+
+    .stat-grid {
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .stat-card {
+      padding: 8px 6px;
+      border-radius: 14px;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      margin-bottom: 2px;
+    }
+
+    .stat-value {
+      font-size: 20px;
+    }
+
+    .goal-box {
+      padding: 10px 12px;
+      margin-bottom: 10px;
+      border-radius: 14px;
+    }
+
+    .goal-box h4 {
+      font-size: 10px;
+      margin-bottom: 8px;
+      letter-spacing: 2px;
+    }
+
+    .goal-item {
+      font-size: 11px;
+      margin-bottom: 8px;
+    }
+
+    .goal-bar {
+      height: 4px;
+    }
+
+    #restartBtn {
+      padding: 12px;
+      font-size: 14px;
+      letter-spacing: 2px;
+      border-radius: 14px;
+    }
+
+    .sound-toggle {
+      width: 26px;
+      height: 26px;
+      font-size: 12px;
+      top: 12px;
+      right: 12px;
+    }
+
+    .love-img-wrap { width: 130px; height: 130px; }
+    .love-text { font-size: 28px; letter-spacing: 5px; }
   }
 
   @media (max-height: 500px) and (orientation: landscape) {
-    body { padding: 60px 12px 12px; }
+    body { padding: 50px 12px 12px; }
     .main { flex-direction: row; }
     .panel { max-width: 260px; }
-    .tip { display: none; }
   }
 </style>
 </head>
