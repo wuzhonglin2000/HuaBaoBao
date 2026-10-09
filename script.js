@@ -459,14 +459,22 @@ function spawnClickPulseAtCanvas(x, y) {
   setTimeout(() => ring.remove(), 650);
 }
 
-/* 方案 7：合成语音气泡 */
+/* 方案 7：合成语音气泡（防溢出） */
 function spawnSpeechBubbleAtCanvas(x, y, text) {
   const pos = canvasToClient(x, y);
   const bubble = document.createElement("div");
   bubble.className = "speech-bubble";
   bubble.textContent = text;
-  bubble.style.left = pos.x + "px";
-  bubble.style.top = (pos.y - 30) + "px";
+
+  // 气泡宽度估算：中文 12px * 字数 + padding
+  const estimatedW = text.length * 12 + 24;
+  const halfW = estimatedW / 2;
+  const minX = halfW + 8;
+  const maxX = window.innerWidth - halfW - 8;
+  const clampedX = Math.max(minX, Math.min(maxX, pos.x));
+
+  bubble.style.left = clampedX + "px";
+  bubble.style.top = Math.max(60, pos.y - 30) + "px";
   floatLayer.appendChild(bubble);
   setTimeout(() => bubble.remove(), 2100);
 }
@@ -610,35 +618,43 @@ async function initGame() {
   pickNext();
   updatePreview();
 
-  /* ===== 方案 1：长按拖拽瞄准 + 松手投放 ===== */
+  /* ===== 方案 1：长按拖拽瞄准 + 松手投放（手机端修复版） ===== */
   let isDragging = false;
   let dragStartX = 0;
+  let dragStartY = 0;
   let dragStartTime = 0;
   let hasMoved = false;
   let currentAimX = BASE_W / 2;
-  let lastTouchClientX = 0;
-  let lastTouchClientY = 0;
+  let lastDropTime = 0;
 
-  function updateAim(clientX) {
+  function clientToCanvasX(clientX) {
     const rect = canvasEl.getBoundingClientRect();
     const scaleX = rect.width / BASE_W;
     const mx = (clientX - rect.left) / scaleX;
-    const x = Math.max(20, Math.min(BASE_W - 20, mx));
+    return Math.max(20, Math.min(BASE_W - 20, mx));
+  }
+
+  function updateAim(clientX) {
+    const x = clientToCanvasX(clientX);
     currentAimX = x;
 
+    const rect = canvasEl.getBoundingClientRect();
     const wrapRect = gameWrap.getBoundingClientRect();
     const canvasOffsetLeft = rect.left - wrapRect.left;
     const canvasOffsetTop = rect.top - wrapRect.top;
     const visualScale = rect.width / BASE_W;
 
     aimLine.style.display = "block";
-    aimLine.style.left = canvasOffsetLeft + x * visualScale + "px";
+    aimLine.style.transform = `translateX(${canvasOffsetLeft + x * visualScale}px)`;
+    aimLine.style.left = "0";
     aimLine.style.top = canvasOffsetTop + "px";
     aimLine.style.height = deadLineY * visualScale + "px";
 
     floatingPreview.style.display = "block";
-    floatingPreview.style.left = canvasOffsetLeft + x * visualScale - 27 + "px";
-    floatingPreview.style.top = canvasOffsetTop + deadLineY * visualScale - 28 + "px";
+    floatingPreview.style.transform =
+      `translate(${canvasOffsetLeft + x * visualScale - 27}px, ${canvasOffsetTop + deadLineY * visualScale - 28}px)`;
+    floatingPreview.style.left = "0";
+    floatingPreview.style.top = "0";
 
     return x;
   }
@@ -649,6 +665,10 @@ async function initGame() {
   }
 
   function doDrop(mx) {
+    const now = Date.now();
+    if (now - lastDropTime < 250) return;
+    lastDropTime = now;
+
     isClickLocked = true;
     spawnClickPulseAtCanvas(mx, deadLineY);
     spawnBall(mx, nextLevelIndex);
@@ -663,31 +683,34 @@ async function initGame() {
   /* --- 鼠标（PC） --- */
   canvasEl.onmousemove = (e) => {
     if (!gameRunning) return;
+    if (isTouchDevice) return;
     updateAim(e.clientX);
   };
   canvasEl.onmouseleave = () => {
+    if (isTouchDevice) return;
     hideAim();
   };
   canvasEl.onclick = (e) => {
     ensureAudio();
     if (!gameRunning || isClickLocked) return;
-    if (isTouchDevice) return; // 触摸设备交给 touch 处理
-    const x = updateAim(e.clientX);
+    if (isTouchDevice) return;
+    const x = clientToCanvasX(e.clientX);
     doDrop(x);
   };
 
-  /* --- 触摸（手机） --- */
+  /* --- 触摸（手机）--- */
   canvasEl.addEventListener("touchstart", (e) => {
     if (!gameRunning) return;
     ensureAudio();
     const t = e.touches[0];
     if (!t) return;
+
     isDragging = true;
     hasMoved = false;
     dragStartX = t.clientX;
+    dragStartY = t.clientY;
     dragStartTime = Date.now();
-    lastTouchClientX = t.clientX;
-    lastTouchClientY = t.clientY;
+
     updateAim(t.clientX);
   }, { passive: true });
 
@@ -696,9 +719,10 @@ async function initGame() {
     e.preventDefault();
     const t = e.touches[0];
     if (!t) return;
-    lastTouchClientX = t.clientX;
-    lastTouchClientY = t.clientY;
-    if (Math.abs(t.clientX - dragStartX) > 6) hasMoved = true;
+
+    if (Math.abs(t.clientX - dragStartX) > 4 || Math.abs(t.clientY - dragStartY) > 4) {
+      hasMoved = true;
+    }
     updateAim(t.clientX);
   }, { passive: false });
 
@@ -706,25 +730,22 @@ async function initGame() {
     if (!gameRunning || !isDragging) return;
     e.preventDefault();
     isDragging = false;
+
     if (isClickLocked) return;
 
     const dt = Date.now() - dragStartTime;
+    const t = e.changedTouches[0];
 
-    // 长按（>180ms）或拖动过，松手投放
-    if (hasMoved || dt > 180) {
-      const x = currentAimX;
-      doDrop(x);
+    let dropX;
+    if (hasMoved || dt > 150) {
+      dropX = currentAimX;
+    } else if (t) {
+      dropX = clientToCanvasX(t.clientX);
     } else {
-      // 快速轻点：直接用点到的位置投放
-      const t = e.changedTouches[0];
-      if (t) {
-        const rect = canvasEl.getBoundingClientRect();
-        const scaleX = rect.width / BASE_W;
-        let mx = (t.clientX - rect.left) / scaleX;
-        mx = Math.max(20, Math.min(BASE_W - 20, mx));
-        doDrop(mx);
-      }
+      dropX = currentAimX;
     }
+
+    doDrop(dropX);
   }, { passive: false });
 
   canvasEl.addEventListener("touchcancel", () => {
@@ -776,7 +797,6 @@ async function initGame() {
 
       checkGoals();
 
-      // 方案 3：分数变化后刷新情话
       if (mergeCount % 3 === 0) rollQuote();
     }
   });
@@ -853,7 +873,7 @@ function createMergedBall(x, y, levelIndex, mult) {
     setTimeout(showLoveTransition, 350);
   }
 
-  // 叫爸爸：每次合成到 6 级（index 6）都触发，用冷却防止连续触发
+  // 叫爸爸：每次合成到 6 级都触发，用冷却防止连触
   if (levelIndex === 6 && !callCooldown) {
     callCooldown = true;
     setTimeout(() => {
@@ -1003,7 +1023,6 @@ function generateScoreCard() {
   c.height = H;
   const ctx = c.getContext("2d");
 
-  // 背景渐变
   const bg = ctx.createLinearGradient(0, 0, 0, H);
   bg.addColorStop(0, "#fff5f8");
   bg.addColorStop(0.5, "#ffeef5");
@@ -1011,7 +1030,6 @@ function generateScoreCard() {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // 背景光晕
   const glow1 = ctx.createRadialGradient(120, 120, 20, 120, 120, 320);
   glow1.addColorStop(0, "rgba(255, 200, 220, 0.55)");
   glow1.addColorStop(1, "rgba(255, 200, 220, 0)");
@@ -1024,18 +1042,15 @@ function generateScoreCard() {
   ctx.fillStyle = glow2;
   ctx.fillRect(0, 0, W, H);
 
-  // 顶部小图标
   ctx.font = "48px serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillText("💐", W / 2, 90);
 
-  // 标题
   ctx.fillStyle = "#d94a76";
   ctx.font = "bold 40px 'PingFang SC','Microsoft YaHei',sans-serif";
   ctx.fillText("合成花宝宝", W / 2, 160);
 
-  // 装饰线
   const lineGrad = ctx.createLinearGradient(W / 2 - 120, 0, W / 2 + 120, 0);
   lineGrad.addColorStop(0, "rgba(232,138,168,0)");
   lineGrad.addColorStop(0.5, "rgba(232,138,168,1)");
@@ -1043,14 +1058,12 @@ function generateScoreCard() {
   ctx.fillStyle = lineGrad;
   ctx.fillRect(W / 2 - 120, 195, 240, 2);
 
-  // 最高级球（如果有）
   const highest = LEVEL[LEVEL.length - 1];
   const imgSrc = finalSrc[highest.src] || highest.src;
   const img = new Image();
   img.src = imgSrc;
 
   const drawCardBody = () => {
-    // 中间球
     const ballSize = 220;
     const ballY = 380;
     try {
@@ -1072,14 +1085,12 @@ function generateScoreCard() {
       ctx.drawImage(img, W / 2 - ballSize / 2, ballY - ballSize / 2, ballSize, ballSize);
       ctx.restore();
     } catch (e) {
-      // 如果图片绘制失败，画一个圆
       ctx.fillStyle = "#ffb3ce";
       ctx.beginPath();
       ctx.arc(W / 2, ballY, ballSize / 2, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // 分数
     ctx.fillStyle = "#ff4d7e";
     ctx.font = "bold 130px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.fillText(String(score), W / 2, 620);
@@ -1088,7 +1099,6 @@ function generateScoreCard() {
     ctx.font = "22px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.fillText("本 局 得 分", W / 2, 680);
 
-    // 三项数据
     const stats = [
       { label: "最高暴击", value: String(maxCombo) },
       { label: "合成次数", value: String(mergeCount) },
@@ -1101,7 +1111,6 @@ function generateScoreCard() {
     const startX = (W - totalW) / 2;
     stats.forEach((s, i) => {
       const x = startX + i * (statW + gap);
-      // 卡片
       ctx.fillStyle = "rgba(255,255,255,0.95)";
       roundRect(ctx, x, statY, statW, 90, 18);
       ctx.fill();
@@ -1119,26 +1128,16 @@ function generateScoreCard() {
       ctx.fillText(s.value, x + statW / 2, statY + 68);
     });
 
-    // 情话
     const quote = pickFinalQuote();
     ctx.fillStyle = "#d88aa8";
     ctx.font = "24px 'PingFang SC','STKaiti','KaiTi',serif";
     ctx.fillText(quote, W / 2, 920);
 
-    // 底部小字
     ctx.fillStyle = "#c99";
     ctx.font = "18px 'PingFang SC','Microsoft YaHei',sans-serif";
     ctx.fillText("花宝宝专属 · 合成花宝宝", W / 2, 960);
   };
 
-  if (img.complete && img.naturalWidth > 0) {
-    drawCardBody();
-  } else {
-    img.onload = drawCardBody;
-    img.onerror = drawCardBody;
-  }
-
-  // 立即返回，但图片加载完后会重绘。为了简单，这里等一小会儿再取
   return new Promise((resolve) => {
     if (img.complete && img.naturalWidth > 0) {
       drawCardBody();
@@ -1187,7 +1186,7 @@ closeOverBtn.onclick = () => {
 };
 restartBtn.onclick = restartGame;
 
-/* 图片加载 & fallback（保持原逻辑） */
+/* 图片加载 & fallback */
 const finalSrc = {};
 const imageDims = {};
 
