@@ -104,16 +104,15 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
-/* 手机端：宽 = 屏宽 - 32，高严格按 320:520 比例
+/* 手机端：宽 = 屏宽 - 20，几乎撑满；高严格按 320:520 比例
    桌面端：宽 360，高按比例，不超过视口 78% */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H; // 320 / 520 ≈ 0.61538
-  const isNarrow = vw <= 860;
+  const ratio = BASE_W / BASE_H;
 
-  if (isNarrow) {
-    const w = Math.min(vw - 32, 380);
+  if (vw <= 860) {
+    const w = Math.min(vw - 20, 480);
     const h = Math.round(w / ratio);
     return { w: Math.round(w), h };
   }
@@ -129,24 +128,26 @@ function computeDisplaySize() {
   return { w: Math.round(w), h: Math.round(h) };
 }
 
-/* 关键：leftCol 宽 = 画布宽 + 12（game-wrap padding 6*2）
-   margin: auto 强制居中，不被父容器推歪 */
+/* 手机端：leftCol 撑满 .main（由 CSS 处理），canvas 由 CSS width:100% 撑满 game-wrap。
+   这里只设置 canvas 的内部宽高和样式宽高 */
 function applyDisplaySize() {
   const size = computeDisplaySize();
+
   canvasEl.style.width = size.w + "px";
   canvasEl.style.height = size.h + "px";
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
-  if (window.innerWidth <= 860 && leftCol && mobileStats) {
-    const totalW = size.w + 12;
-    leftCol.style.width = totalW + "px";
-    leftCol.style.maxWidth = "none";
-    leftCol.style.flexShrink = "0";
-    leftCol.style.marginLeft = "auto";
-    leftCol.style.marginRight = "auto";
-    mobileStats.style.width = "100%";
-    gameWrap.style.width = "100%";
+  if (window.innerWidth <= 860) {
+    if (leftCol) {
+      leftCol.style.width = "";
+      leftCol.style.maxWidth = "";
+      leftCol.style.flexShrink = "";
+      leftCol.style.marginLeft = "";
+      leftCol.style.marginRight = "";
+    }
+    if (mobileStats) mobileStats.style.width = "";
+    if (gameWrap) gameWrap.style.width = "";
   } else {
     if (leftCol) {
       leftCol.style.width = "";
