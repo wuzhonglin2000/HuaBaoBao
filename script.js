@@ -49,6 +49,7 @@ const BASE_H = 520;
 let width = BASE_W;
 let height = BASE_H;
 
+/* 面板顶部随机情话 */
 const LOVE_QUOTES = [
   "花宝宝，今天也超级想你",
   "花宝宝，想把你揣兜里",
@@ -65,11 +66,16 @@ const LOVE_QUOTES = [
   "花宝宝，你问我喜欢你哪里，我哪都喜欢"
 ];
 
-function pickFinalQuote(scoreVal) {
-  if (scoreVal >= 300) return "花宝宝，你永远是我的满分答案💯";
-  if (scoreVal >= 150) return "花宝宝，这一局也好想抱抱你 🤗";
-  if (scoreVal >= 50)  return "花宝宝，不管几分都最喜欢你 💕";
-  return "花宝宝，分数不重要，你最重要 🌸";
+/* 结算情话：每次随机一条 */
+const FINAL_QUOTES = [
+  "花宝宝，你永远是我的满分答案💯",
+  "花宝宝，这一局也好想抱抱你 🤗",
+  "花宝宝，不管几分都最喜欢你 💕",
+  "花宝宝，分数不重要，你最重要 🌸"
+];
+
+function pickFinalQuote() {
+  return FINAL_QUOTES[Math.floor(Math.random() * FINAL_QUOTES.length)];
 }
 
 function rollQuote() {
@@ -100,7 +106,6 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
-/* 手机端画布宽度固定 340（和卡片对齐），桌面端 360 */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -108,11 +113,8 @@ function computeDisplaySize() {
   const isNarrow = vw <= 860;
 
   if (isNarrow) {
-    // 手机端：目标宽度
     let targetW = Math.min(vw - 32, 340);
-    // 画布宽固定，高按比例
     let targetH = targetW / ratio;
-    // 如果太高（超过视口 48%），反过来按高度算宽度
     const maxH = vh * 0.48;
     if (targetH > maxH) {
       targetH = maxH;
@@ -121,7 +123,6 @@ function computeDisplaySize() {
     return { w: Math.round(targetW), h: Math.round(targetH) };
   }
 
-  // 桌面端
   const maxW = 360;
   const maxH = vh * 0.72;
   let w = maxW;
@@ -140,9 +141,8 @@ function applyDisplaySize() {
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
-  // 手机端：让分数卡、画布外框、下方面板与画布宽度一致
+  // 手机端：让卡片、画布外框与画布对齐
   if (window.innerWidth <= 860 && leftCol && mobileStats) {
-    // game-wrap padding = 6，左右各 6 → 总宽 = size.w + 12
     const totalW = size.w + 12;
     leftCol.style.width = totalW + "px";
     mobileStats.style.width = "100%";
@@ -840,7 +840,7 @@ function gameOver() {
   finalMergesDom.textContent = mergeCount;
   finalTimeDom.textContent = usedSec + "s";
   finalBestDom.textContent = bestScore;
-  finalQuoteDom.textContent = pickFinalQuote(score);
+  finalQuoteDom.textContent = pickFinalQuote();  // ← 随机一条，不看分数
 
   gameOverModal.style.display = "flex";
 }
