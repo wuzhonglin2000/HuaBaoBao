@@ -49,7 +49,6 @@ const BASE_H = 520;
 let width = BASE_W;
 let height = BASE_H;
 
-/* 面板顶部随机情话 */
 const LOVE_QUOTES = [
   "花宝宝，今天也超级想你",
   "花宝宝，想把你揣兜里",
@@ -66,7 +65,6 @@ const LOVE_QUOTES = [
   "花宝宝，你问我喜欢你哪里，我哪都喜欢"
 ];
 
-/* 结算情话：随机一条 */
 const FINAL_QUOTES = [
   "花宝宝，你永远是我的满分答案💯",
   "花宝宝，这一局也好想抱抱你 🤗",
@@ -106,25 +104,22 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
+/* 手机端：宽 = 屏宽 - 32，高严格按 320:520 比例
+   桌面端：宽 360，高按比例，不超过视口 78% */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H;
+  const ratio = BASE_W / BASE_H; // 320 / 520 ≈ 0.61538
   const isNarrow = vw <= 860;
 
   if (isNarrow) {
-    let targetW = Math.min(vw - 32, 340);
-    let targetH = targetW / ratio;
-    const maxH = vh * 0.48;
-    if (targetH > maxH) {
-      targetH = maxH;
-      targetW = targetH * ratio;
-    }
-    return { w: Math.round(targetW), h: Math.round(targetH) };
+    const w = Math.min(vw - 32, 380);
+    const h = Math.round(w / ratio);
+    return { w: Math.round(w), h };
   }
 
   const maxW = 360;
-  const maxH = vh * 0.72;
+  const maxH = vh * 0.78;
   let w = maxW;
   let h = w / ratio;
   if (h > maxH) {
@@ -134,7 +129,8 @@ function computeDisplaySize() {
   return { w: Math.round(w), h: Math.round(h) };
 }
 
-/* 关键：让 leftCol 自己居中，不被父容器推歪 */
+/* 关键：leftCol 宽 = 画布宽 + 12（game-wrap padding 6*2）
+   margin: auto 强制居中，不被父容器推歪 */
 function applyDisplaySize() {
   const size = computeDisplaySize();
   canvasEl.style.width = size.w + "px";
@@ -143,7 +139,7 @@ function applyDisplaySize() {
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
   if (window.innerWidth <= 860 && leftCol && mobileStats) {
-    const totalW = size.w + 12; // game-wrap padding 6*2
+    const totalW = size.w + 12;
     leftCol.style.width = totalW + "px";
     leftCol.style.maxWidth = "none";
     leftCol.style.flexShrink = "0";

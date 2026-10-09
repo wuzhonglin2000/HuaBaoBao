@@ -1053,24 +1053,28 @@
       align-items: center;
       gap: 8px;
       max-width: 100%;
+      width: 100%;
     }
 
-    /* 左列：宽度由脚本控制（和画布同宽） */
+    /* left-col 宽度由 JS 设置，margin:auto 居中 */
     .left-col {
       align-items: center;
       gap: 8px;
+      width: auto;
+      max-width: 100%;
+      margin-left: auto;
+      margin-right: auto;
     }
     .right-col {
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       gap: 8px;
     }
 
-    /* 卡片 + 画布都由脚本统一设置宽度，这里只做样式 */
     .mobile-stats {
       display: flex;
       gap: 8px;
-      /* width 由 JS 设置 */
+      width: 100%;
     }
     .mobile-stats .stat-card {
       padding: 10px 8px;
@@ -1086,7 +1090,8 @@
     .game-wrap {
       padding: 6px;
       border-radius: 18px;
-      /* width 由 JS 设置 */
+      width: 100%;
+      box-sizing: border-box;
     }
     canvas { border-radius: 14px; }
 
@@ -1101,7 +1106,7 @@
 
     .panel {
       width: 100%;
-      max-width: 360px;
+      max-width: 380px;
       padding: 14px 14px 16px;
       border-radius: 18px;
     }
