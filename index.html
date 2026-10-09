@@ -176,6 +176,7 @@
     width: 100%;
     max-width: 900px;
   }
+
   .left-col {
     display: flex;
     flex-direction: column;
@@ -272,7 +273,7 @@
     100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
-  /* 画布外框：宽高由 JS 控制，这里不写 width/height */
+  /* 画布外框 */
   .game-wrap {
     position: relative;
     border-radius: 18px;
@@ -284,6 +285,7 @@
       0 16px 40px rgba(255, 160, 190, 0.22);
     flex-shrink: 0;
     transition: transform 0.3s ease;
+    font-size: 0; /* 消除 inline-block 白边 */
   }
   .game-wrap.shake { animation: shake 0.28s ease; }
   @keyframes shake {
@@ -294,7 +296,8 @@
     80% { transform: translate(3px, 2px); }
   }
 
-  /* 关键：canvas 不写 width/height，全部由 JS 内联样式控制 */
+  /* 关键：canvas 绝对不写 width/height（无论是否 !important），
+     全部由 Matter.js + JS 内联样式控制 */
   canvas {
     display: block;
     border-radius: 18px;
@@ -1031,22 +1034,14 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* ========== 手机端：上下堆叠，画布高度由 JS 撑满 ========== */
+  /* ========== 手机端 ========== */
   @media (max-width: 860px) {
     body {
       padding: 6px;
-      height: 100dvh;
-      overflow: hidden;
     }
-
     .app {
       gap: 6px;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
     }
-
     .topbar { display: none; }
 
     .main {
@@ -1057,17 +1052,12 @@
       width: 100%;
       flex: 1;
       min-height: 0;
-      display: flex;
     }
-
     .left-col,
     .right-col {
       align-items: stretch;
       gap: 6px;
-      width: auto;
       flex-shrink: 0;
-      margin-left: auto;
-      margin-right: auto;
     }
 
     .mobile-stats {
@@ -1090,10 +1080,6 @@
       padding: 0;
       border-radius: 18px;
       box-sizing: border-box;
-      box-shadow:
-        0 0 0 1px rgba(255, 200, 220, 0.7),
-        0 0 0 4px rgba(255, 255, 255, 0.6),
-        0 12px 30px rgba(255, 160, 190, 0.25);
     }
 
     .next-badge { display: flex; }
@@ -1174,9 +1160,7 @@
           <div class="floating-preview" id="floatingPreview">
             <img id="previewImg" src="" alt="" />
           </div>
-
           <img class="sign-icon" src="img/qm.png" alt="" />
-
           <div class="next-badge">
             <span class="label">下一个</span>
             <img id="nextImgMobile" src="" alt="" />

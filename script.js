@@ -12,7 +12,6 @@ const previewImg = document.getElementById("previewImg");
 const nextImgDom = document.getElementById("nextImg");
 const scoreDom = document.getElementById("score");
 const bestScoreDom = document.getElementById("bestScore");
-
 const nextImgMobileDom = document.getElementById("nextImgMobile");
 const scoreMobileDom = document.getElementById("scoreMobile");
 const bestScoreMobileDom = document.getElementById("bestScoreMobile");
@@ -47,9 +46,6 @@ const callBurst = document.getElementById("callBurst");
 const BASE_W = 320;
 const BASE_H = 520;
 
-let width = BASE_W;
-let height = BASE_H;
-
 const LOVE_QUOTES = [
   "花宝宝，今天也超级想你",
   "花宝宝，想把你揣兜里",
@@ -73,91 +69,14 @@ const FINAL_QUOTES = [
   "花宝宝，分数不重要，你最重要 🌸"
 ];
 
-function pickFinalQuote() {
-  return FINAL_QUOTES[Math.floor(Math.random() * FINAL_QUOTES.length)];
-}
+const pickFinalQuote = () =>
+  FINAL_QUOTES[Math.floor(Math.random() * FINAL_QUOTES.length)];
 
-function rollQuote() {
-  const q = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
-  panelTag.textContent = q;
-  if (panelTagWrap) {
-    panelTagWrap.style.animation = "none";
-    void panelTagWrap.offsetWidth;
-    panelTagWrap.style.animation = "";
-  }
-}
-
-function syncScore(v) {
-  if (scoreDom) scoreDom.textContent = v;
-  if (scoreMobileDom) scoreMobileDom.textContent = v;
-}
-function syncBest(v) {
-  if (bestScoreDom) bestScoreDom.textContent = v;
-  if (bestScoreMobileDom) bestScoreMobileDom.textContent = v;
-}
-function syncNext(src) {
-  if (nextImgDom) nextImgDom.src = src;
-  if (nextImgMobileDom) nextImgMobileDom.src = src;
-}
-
-const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
-function comboName(n) {
-  return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
-}
-
-/* 严格保持 320:520 比例
-   手机端：宽 = 屏宽-12，高按比例，同时不超过"视口-预留" */
-function computeDisplaySize() {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H;
-
-  if (vw <= 860) {
-    const maxW = vw - 12;
-    const reserve = 210;
-    const maxH = vh - reserve;
-
-    let w = maxW;
-    let h = w / ratio;
-
-    if (h > maxH) {
-      h = maxH;
-      w = h * ratio;
-    }
-    return { w: Math.round(w), h: Math.round(h) };
-  }
-
-  const maxW = 360;
-  const maxH = vh * 0.72;
-  let w = maxW;
-  let h = w / ratio;
-  if (h > maxH) {
-    h = maxH;
-    w = h * ratio;
-  }
-  return { w: Math.round(w), h: Math.round(h) };
-}
-
-function applyDisplaySize() {
-  const size = computeDisplaySize();
-  canvasEl.style.width = size.w + "px";
-  canvasEl.style.height = size.h + "px";
-  if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
-  if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
-
-  if (window.innerWidth <= 860) {
-    if (leftCol) leftCol.style.width = size.w + "px";
-    if (rightCol) rightCol.style.width = size.w + "px";
-  } else {
-    if (leftCol) leftCol.style.width = "";
-    if (rightCol) rightCol.style.width = "";
-  }
-}
-
-let deadLineY = 100;
-function computeDeadLine() {
-  return Math.round(BASE_H * (100 / 520));
-}
+/* =============================================================
+   关键 1：加载图片时记录每张图的原始尺寸，后续设置 sprite 时
+   让 sprite 渲染成 2r × 2r 的正方形，图片不会变扁。
+   ============================================================= */
+const imageDims = {}; // src -> { w, h }
 
 const LEVEL = [
   { radius: 16, score: 1, src: "img/0.png" },
@@ -169,6 +88,99 @@ const LEVEL = [
   { radius: 64, score: 7, src: "img/6.png" },
   { radius: 76, score: 100, src: "img/7.png" }
 ];
+
+function preloadImages() {
+  return Promise.all(
+    LEVEL.map(
+      (item) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.src = item.src;
+          img.onload = () => {
+            imageDims[item.src] = {
+              w: img.naturalWidth || 500,
+              h: img.naturalHeight || 500
+            };
+            resolve(true);
+          };
+          img.onerror = () => {
+            console.warn("图片加载失败：", item.src);
+            imageDims[item.src] = { w: 500, h: 500 };
+            resolve(true);
+          };
+        })
+    )
+  );
+}
+
+/* 生成 sprite 配置：强制 sprite 显示为 2r × 2r 正方形 */
+function makeSpriteConfig(lv) {
+  const dim = imageDims[lv.src] || { w: 500, h: 500 };
+  const targetSize = lv.radius * 2;
+  return {
+    texture: lv.src,
+    xScale: targetSize / dim.w,
+    yScale: targetSize / dim.h
+  };
+}
+
+/* =============================================================
+   关键 2：画布显示尺寸 — 严格保持 320:520 比例
+   ============================================================= */
+function computeDisplaySize() {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const ratio = BASE_W / BASE_H;
+
+  if (vw <= 860) {
+    // 手机：预留卡片(约60) + 面板(约130) + 间距(约18) + body padding(12) + 底部安全
+    const reserved = 230;
+    const maxW = vw - 12;
+    const maxH = vh - reserved;
+
+    let w = maxW;
+    let h = w / ratio;
+    if (h > maxH) {
+      h = maxH;
+      w = h * ratio;
+    }
+    return { w: Math.round(w), h: Math.round(h) };
+  }
+
+  // 桌面：左右布局
+  const maxW = 360;
+  const maxH = vh * 0.78;
+  let w = maxW;
+  let h = w / ratio;
+  if (h > maxH) {
+    h = maxH;
+    w = h * ratio;
+  }
+  return { w: Math.round(w), h: Math.round(h) };
+}
+
+/* 只改 CSS 尺寸。canvas.width / canvas.height 由 Matter.js 管。 */
+function applyDisplaySize() {
+  const size = computeDisplaySize();
+  canvasEl.style.width = size.w + "px";
+  canvasEl.style.height = size.h + "px";
+
+  if (window.innerWidth <= 860) {
+    if (leftCol) leftCol.style.width = size.w + "px";
+    if (rightCol) rightCol.style.width = size.w + "px";
+  } else {
+    if (leftCol) leftCol.style.width = "";
+    if (rightCol) rightCol.style.width = "";
+  }
+}
+
+/* =============================================================
+   其余游戏逻辑
+   ============================================================= */
+let deadLineY = 100;
+function computeDeadLine() {
+  return Math.round(BASE_H * (100 / 520));
+}
 
 const BASE_WEIGHTS = [30, 25, 20, 14, 8, 3, 0, 0];
 
@@ -226,6 +238,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
 }
 syncBest(bestScore);
 
+/* --------- 音效 --------- */
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
@@ -261,8 +274,7 @@ function sfxMerge(level) {
 
 function sfxCombo(n) {
   const base = 520;
-  const times = Math.min(n, 5);
-  for (let i = 0; i < times; i++) {
+  for (let i = 0; i < Math.min(n, 5); i++) {
     playTone(base * Math.pow(1.12, i), 0.08, "triangle", 0.1, i * 0.05);
   }
 }
@@ -279,25 +291,37 @@ function haptic(ms) {
   } catch (e) {}
 }
 
-function preloadImages() {
-  return new Promise((resolve) => {
-    let count = 0;
-    LEVEL.forEach((item) => {
-      const img = new Image();
-      img.src = item.src;
-      img.onload = () => {
-        count++;
-        if (count >= LEVEL.length) resolve(true);
-      };
-      img.onerror = () => {
-        count++;
-        console.warn("图片加载失败：", item.src);
-        if (count >= LEVEL.length) resolve(true);
-      };
-    });
-  });
+/* --------- 分数 / 最高 / 下一个 同步 --------- */
+function syncScore(v) {
+  if (scoreDom) scoreDom.textContent = v;
+  if (scoreMobileDom) scoreMobileDom.textContent = v;
+}
+function syncBest(v) {
+  if (bestScoreDom) bestScoreDom.textContent = v;
+  if (bestScoreMobileDom) bestScoreMobileDom.textContent = v;
+}
+function syncNext(src) {
+  if (nextImgDom) nextImgDom.src = src;
+  if (nextImgMobileDom) nextImgMobileDom.src = src;
 }
 
+/* --------- 情话 --------- */
+function rollQuote() {
+  const q = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
+  panelTag.textContent = q;
+  if (panelTagWrap) {
+    panelTagWrap.style.animation = "none";
+    void panelTagWrap.offsetWidth;
+    panelTagWrap.style.animation = "";
+  }
+}
+
+/* --------- 暴击分级 --------- */
+const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
+const comboName = (n) =>
+  COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
+
+/* --------- 死亡线绘制 --------- */
 function drawDeadLine() {
   if (!render || !render.context) return;
   const ctx = render.context;
@@ -305,49 +329,54 @@ function drawDeadLine() {
 
   ctx.save();
 
+  // 上方柔光
   const grad = ctx.createLinearGradient(0, y - 40, 0, y);
   grad.addColorStop(0, "rgba(255, 180, 210, 0)");
   grad.addColorStop(1, "rgba(255, 180, 210, 0.18)");
   ctx.fillStyle = grad;
-  ctx.fillRect(0, y - 40, width, 40);
+  ctx.fillRect(0, y - 40, BASE_W, 40);
 
+  // 主线
   ctx.beginPath();
   ctx.strokeStyle = "rgba(255, 140, 175, 0.55)";
   ctx.lineWidth = 2;
   ctx.shadowColor = "rgba(255, 140, 175, 0.5)";
   ctx.shadowBlur = 8;
   ctx.moveTo(14, y);
-  ctx.lineTo(width - 14, y);
+  ctx.lineTo(BASE_W - 14, y);
   ctx.stroke();
 
+  // 白线
   ctx.beginPath();
   ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
   ctx.lineWidth = 1;
   ctx.shadowBlur = 0;
   ctx.moveTo(14, y);
-  ctx.lineTo(width - 14, y);
+  ctx.lineTo(BASE_W - 14, y);
   ctx.stroke();
 
+  // 两端圆头
   const capR = 6;
-  const capGrad = ctx.createRadialGradient(14, y, 0, 14, y, capR);
-  capGrad.addColorStop(0, "rgba(255, 150, 180, 0.9)");
-  capGrad.addColorStop(1, "rgba(255, 150, 180, 0)");
-  ctx.fillStyle = capGrad;
+  const cg1 = ctx.createRadialGradient(14, y, 0, 14, y, capR);
+  cg1.addColorStop(0, "rgba(255, 150, 180, 0.9)");
+  cg1.addColorStop(1, "rgba(255, 150, 180, 0)");
+  ctx.fillStyle = cg1;
   ctx.beginPath();
   ctx.arc(14, y, capR, 0, Math.PI * 2);
   ctx.fill();
 
-  const capGrad2 = ctx.createRadialGradient(width - 14, y, 0, width - 14, y, capR);
-  capGrad2.addColorStop(0, "rgba(255, 150, 180, 0.9)");
-  capGrad2.addColorStop(1, "rgba(255, 150, 180, 0)");
-  ctx.fillStyle = capGrad2;
+  const cg2 = ctx.createRadialGradient(BASE_W - 14, y, 0, BASE_W - 14, y, capR);
+  cg2.addColorStop(0, "rgba(255, 150, 180, 0.9)");
+  cg2.addColorStop(1, "rgba(255, 150, 180, 0)");
+  ctx.fillStyle = cg2;
   ctx.beginPath();
-  ctx.arc(width - 14, y, capR, 0, Math.PI * 2);
+  ctx.arc(BASE_W - 14, y, capR, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.restore();
 }
 
+/* --------- 目标 --------- */
 function generateGoals() {
   const pool = [
     { id: "score50",  text: "单局达到 50 分",  target: 50,  get: () => score,      reward: 15 },
@@ -357,7 +386,6 @@ function generateGoals() {
     { id: "merge10",  text: "合成 10 次",      target: 10,  get: () => mergeCount, reward: 25 },
     { id: "merge20",  text: "合成 20 次",      target: 20,  get: () => mergeCount, reward: 50 }
   ];
-
   const shuffled = pool.slice().sort(() => Math.random() - 0.5);
   goals = shuffled.slice(0, 3).map((g) => ({ ...g, done: false }));
   renderGoals();
@@ -398,6 +426,7 @@ function checkGoals() {
   renderGoals();
 }
 
+/* --------- 飘字 / 粒子 --------- */
 function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -413,11 +442,9 @@ function showFloatText(clientX, clientY, text, isCombo) {
 function showScorePop(text) {
   const card = document.querySelector(".mobile-stats .stat-card");
   if (!card) return;
-
   card.classList.remove("score-pop");
   void card.offsetWidth;
   card.classList.add("score-pop");
-
   const tip = document.createElement("div");
   tip.className = "score-tip";
   tip.textContent = text;
@@ -474,18 +501,16 @@ function spawnClickPulseAtCanvas(x, y) {
   setTimeout(() => ring.remove(), 650);
 }
 
+/* --------- 连击 --------- */
 function triggerCombo() {
   combo += 1;
   maxCombo = Math.max(maxCombo, combo);
-
   if (combo >= 2 && comboBadge) {
-    const name = comboName(combo);
     comboBadge.style.display = "block";
     comboBadge.textContent =
-      name + " ×" + combo + "  分数 ×" + (1 + (combo - 1) * 0.2).toFixed(1);
+      comboName(combo) + " ×" + combo + "  分数 ×" + (1 + (combo - 1) * 0.2).toFixed(1);
     sfxCombo(combo);
   }
-
   if (comboTimer) clearTimeout(comboTimer);
   comboTimer = setTimeout(() => {
     combo = 0;
@@ -493,9 +518,7 @@ function triggerCombo() {
   }, 2000);
 }
 
-function comboMultiplier() {
-  return 1 + Math.max(0, combo - 1) * 0.2;
-}
+const comboMultiplier = () => 1 + Math.max(0, combo - 1) * 0.2;
 
 function shakeScreen() {
   gameWrap.classList.remove("shake");
@@ -504,16 +527,12 @@ function shakeScreen() {
 }
 
 function bumpScore() {
-  if (scoreDom) {
-    scoreDom.classList.remove("pop");
-    void scoreDom.offsetWidth;
-    scoreDom.classList.add("pop");
-  }
-  if (scoreMobileDom) {
-    scoreMobileDom.classList.remove("pop");
-    void scoreMobileDom.offsetWidth;
-    scoreMobileDom.classList.add("pop");
-  }
+  [scoreDom, scoreMobileDom].forEach((el) => {
+    if (!el) return;
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
+  });
 }
 
 function updateBestScore() {
@@ -545,11 +564,11 @@ soundToggle.onclick = (e) => {
   }
 };
 
+/* =============================================================
+   Matter.js 初始化
+   ============================================================= */
 async function initGame() {
   await preloadImages();
-
-  applyDisplaySize();
-  deadLineY = computeDeadLine();
 
   score = 0;
   balls = [];
@@ -562,14 +581,15 @@ async function initGame() {
   maxCombo = 0;
   mergeCount = 0;
   startTime = Date.now();
+  deadLineY = computeDeadLine();
 
   if (comboTimer) clearTimeout(comboTimer);
   if (comboBadge) comboBadge.style.display = "none";
   syncScore(0);
-
   rollQuote();
   refreshSoundToggle();
 
+  // 清理旧引擎
   if (engine) {
     Events.off(engine);
     World.clear(engine.world, false);
@@ -597,6 +617,11 @@ async function initGame() {
   runner = Runner.create();
   Runner.run(runner, engine);
 
+  // 关键：Render.create 会把 canvas.style.width/height 设成 320/520，
+  // 所以要在创建之后再 applyDisplaySize()，才能把 CSS 尺寸改成显示尺寸。
+  applyDisplaySize();
+
+  // 墙体
   const ground = Bodies.rectangle(BASE_W / 2, BASE_H + 20, BASE_W, 40, {
     isStatic: true, label: "ground"
   });
@@ -606,7 +631,6 @@ async function initGame() {
   const rightWall = Bodies.rectangle(BASE_W + 10, BASE_H / 2, 20, BASE_H, {
     isStatic: true, label: "wallRight"
   });
-
   World.add(engine.world, [ground, leftWall, rightWall]);
 
   Events.on(render, "afterRender", drawDeadLine);
@@ -615,6 +639,7 @@ async function initGame() {
   pickNext();
   updatePreview();
 
+  /* ----- 输入 ----- */
   function handlePointerMove(clientX) {
     if (!gameRunning) return;
     const rect = canvasEl.getBoundingClientRect();
@@ -638,36 +663,31 @@ async function initGame() {
   }
 
   canvasEl.onmousemove = (e) => handlePointerMove(e.clientX);
-
   canvasEl.onmouseleave = () => {
     aimLine.style.display = "none";
     floatingPreview.style.display = "none";
   };
-
   canvasEl.ontouchstart = (e) => {
     ensureAudio();
-    const touch = e.touches[0];
-    if (touch) handlePointerMove(touch.clientX);
+    const t = e.touches[0];
+    if (t) handlePointerMove(t.clientX);
   };
-
   canvasEl.ontouchmove = (e) => {
     e.preventDefault();
-    const touch = e.touches[0];
-    if (touch) handlePointerMove(touch.clientX);
+    const t = e.touches[0];
+    if (t) handlePointerMove(t.clientX);
   };
-
   canvasEl.ontouchend = (e) => {
     e.preventDefault();
     if (!gameRunning || isClickLocked) return;
-    const touch = e.changedTouches[0];
-    if (!touch) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
     const rect = canvasEl.getBoundingClientRect();
     const scaleX = rect.width / BASE_W;
-    let mx = (touch.clientX - rect.left) / scaleX;
+    let mx = (t.clientX - rect.left) / scaleX;
     mx = Math.max(20, Math.min(BASE_W - 20, mx));
     doDrop(mx);
   };
-
   canvasEl.onclick = (e) => {
     ensureAudio();
     if (!gameRunning || isClickLocked) return;
@@ -686,11 +706,10 @@ async function initGame() {
     updatePreview();
     aimLine.style.display = "none";
     floatingPreview.style.display = "none";
-    setTimeout(() => {
-      isClickLocked = false;
-    }, 300);
+    setTimeout(() => { isClickLocked = false; }, 300);
   }
 
+  /* ----- 碰撞合并 ----- */
   Events.on(engine, "collisionStart", (e) => {
     const pairs = e.pairs;
     for (const pair of pairs) {
@@ -732,6 +751,7 @@ async function initGame() {
     }
   });
 
+  /* ----- 死亡检测 ----- */
   Events.on(engine, "afterUpdate", () => {
     if (!gameRunning) return;
     const now = Date.now();
@@ -739,10 +759,7 @@ async function initGame() {
     for (const b of balls) {
       if (b.birthTime && now - b.birthTime < SPAWN_PROTECT_MS) continue;
       const ballTop = b.position.y - b.circleRadius;
-      if (ballTop < deadLineY) {
-        anyOverLine = true;
-        break;
-      }
+      if (ballTop < deadLineY) { anyOverLine = true; break; }
     }
     if (anyOverLine) {
       overLineTimer += engine.timing.lastDelta || 16.6;
@@ -753,22 +770,16 @@ async function initGame() {
   });
 }
 
+/* --------- 生成球 --------- */
 function spawnBall(x, levelIndex) {
   const lv = LEVEL[levelIndex];
-  const scale = (lv.radius / 250) * 1.0;
   const ball = Bodies.circle(x, -60, lv.radius, {
     restitution: 0.35,
     label: "ball",
     level: levelIndex,
     merged: false,
     birthTime: Date.now(),
-    render: {
-      sprite: {
-        texture: lv.src,
-        xScale: scale,
-        yScale: scale
-      }
-    }
+    render: { sprite: makeSpriteConfig(lv) }
   });
   World.add(engine.world, ball);
   balls.push(ball);
@@ -776,20 +787,13 @@ function spawnBall(x, levelIndex) {
 
 function createMergedBall(x, y, levelIndex, mult) {
   const lv = LEVEL[levelIndex];
-  const scale = (lv.radius / 250) * 1.0;
   const ball = Bodies.circle(x, y, lv.radius, {
     restitution: 0.35,
     label: "ball",
     level: levelIndex,
     merged: false,
     birthTime: Date.now(),
-    render: {
-      sprite: {
-        texture: lv.src,
-        xScale: scale,
-        yScale: scale
-      }
-    }
+    render: { sprite: makeSpriteConfig(lv) }
   });
   World.add(engine.world, ball);
   balls.push(ball);
@@ -806,6 +810,7 @@ function createMergedBall(x, y, levelIndex, mult) {
     checkGoals();
   }, 80);
 
+  // 分数越高，红线稍微下移
   const maxDead = Math.round(BASE_H * 0.25);
   const baseDead = computeDeadLine();
   const newDeadLine = Math.min(maxDead, baseDead + Math.floor(score / 150) * 8);
@@ -814,7 +819,6 @@ function createMergedBall(x, y, levelIndex, mult) {
   if (levelIndex === LEVEL.length - 1) {
     setTimeout(showLoveTransition, 350);
   }
-
   if (levelIndex === 6 && !callShown) {
     callShown = true;
     setTimeout(showCallTransition, 350);
@@ -826,6 +830,7 @@ function updatePreview() {
   previewImg.src = LEVEL[nextLevelIndex].src;
 }
 
+/* --------- 结束 / 重开 --------- */
 function gameOver() {
   if (!gameRunning) return;
   gameRunning = false;
@@ -862,10 +867,10 @@ function restartGame() {
   callBurst.innerHTML = "";
 
   if (loveHideTimer) clearTimeout(loveHideTimer);
-
   initGame();
 }
 
+/* --------- 转场 --------- */
 function showLoveTransition() {
   if (loveHideTimer) clearTimeout(loveHideTimer);
   loveTransition.classList.remove("show");
@@ -875,13 +880,11 @@ function showLoveTransition() {
   loveBurst.innerHTML = "";
 
   const particles = ["❤️", "💕", "💖", "🌸", "💗", "🌷", "✨"];
-  const count = 26;
-
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < 26; i++) {
     const p = document.createElement("div");
     p.className = "love-particle";
     p.textContent = particles[Math.floor(Math.random() * particles.length)];
-    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const angle = (Math.PI * 2 * i) / 26 + Math.random() * 0.4;
     const dist = 120 + Math.random() * 160;
     const dx = Math.cos(angle) * dist;
     const dy = Math.sin(angle) * dist;
@@ -907,15 +910,12 @@ function showLoveTransition() {
 function showCallTransition() {
   callImg.src = LEVEL[6].src;
   callBurst.innerHTML = "";
-
   const particles = ["🔥", "👑", "💥", "⭐", "✨"];
-  const count = 22;
-
-  for (let i = 0; i < count; i++) {
+  for (let i = 0; i < 22; i++) {
     const p = document.createElement("div");
     p.className = "love-particle";
     p.textContent = particles[Math.floor(Math.random() * particles.length)];
-    const angle = (Math.PI * 2 * i) / count + Math.random() * 0.4;
+    const angle = (Math.PI * 2 * i) / 22 + Math.random() * 0.4;
     const dist = 110 + Math.random() * 140;
     const dx = Math.cos(angle) * dist;
     const dy = Math.sin(angle) * dist;
@@ -926,14 +926,10 @@ function showCallTransition() {
     p.style.animationDelay = (Math.random() * 0.25).toFixed(2) + "s";
     callBurst.appendChild(p);
   }
-
   callTransition.classList.add("show");
-
   setTimeout(() => {
     callTransition.classList.remove("show");
-    setTimeout(() => {
-      callBurst.innerHTML = "";
-    }, 700);
+    setTimeout(() => { callBurst.innerHTML = ""; }, 700);
   }, 2800);
 }
 
@@ -952,10 +948,9 @@ function createHeartRain() {
   }
 }
 
-/* 手机端不生成背景飘落花瓣 */
+/* --------- 背景花瓣（手机端禁用） --------- */
 function startAmbientPetals() {
   if (window.innerWidth <= 860) return;
-
   const petals = ["🌸", "🌷", "💮", "🌺"];
   setInterval(() => {
     if (document.hidden) return;
@@ -971,14 +966,12 @@ function startAmbientPetals() {
   }, 1800);
 }
 
+/* --------- 窗口变化 --------- */
 let resizeTimer = null;
 window.addEventListener("resize", () => {
   if (resizeTimer) clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    applyDisplaySize();
-  }, 100);
+  resizeTimer = setTimeout(applyDisplaySize, 100);
 });
-
 window.addEventListener("orientationchange", () => {
   setTimeout(applyDisplaySize, 200);
 });
@@ -987,7 +980,6 @@ closeOverBtn.onclick = () => {
   gameOverModal.style.display = "none";
   restartGame();
 };
-
 restartBtn.onclick = restartGame;
 
 initGame();
