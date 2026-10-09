@@ -15,7 +15,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 8px;
+    padding: 6px;
     background:
       radial-gradient(circle at 20% 10%, #fff5f8 0%, transparent 50%),
       radial-gradient(circle at 80% 90%, #f0f7ff 0%, transparent 50%),
@@ -166,7 +166,6 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
   }
 
-  /* 主区：桌面左右，手机上下 */
   .main {
     position: relative;
     z-index: 1;
@@ -273,7 +272,7 @@
     100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
-  /* 画布外框：宽高都由 JS 控制 */
+  /* 画布外框：宽高由 JS 控制，这里不写 width/height */
   .game-wrap {
     position: relative;
     border-radius: 18px;
@@ -295,6 +294,7 @@
     80% { transform: translate(3px, 2px); }
   }
 
+  /* 关键：canvas 不写 width/height，全部由 JS 内联样式控制 */
   canvas {
     display: block;
     border-radius: 18px;
@@ -304,15 +304,14 @@
       0 0 0 1px rgba(255, 200, 220, 0.4);
     touch-action: none;
     cursor: pointer;
-    /* 不设 width / height，全部由 JS 内联样式控制 */
   }
 
   .sign-icon {
     position: absolute;
-    top: 16px;
-    left: 16px;
-    width: 44px;
-    height: 44px;
+    top: 14px;
+    left: 14px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     transform: rotate(-45deg);
     z-index: 8;
@@ -323,14 +322,14 @@
   .next-badge {
     display: none;
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px;
+    right: 14px;
     flex-direction: column;
     align-items: center;
     gap: 3px;
-    padding: 9px 11px 8px;
+    padding: 8px 10px 7px;
     background: rgba(255, 255, 255, 0.98);
-    border-radius: 16px;
+    border-radius: 14px;
     box-shadow:
       inset 0 0 0 2px rgba(255, 170, 200, 0.9),
       0 8px 20px rgba(255, 120, 160, 0.4),
@@ -348,8 +347,8 @@
     font-weight: 700;
   }
   .next-badge img {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     object-fit: contain;
     border-radius: 50%;
     filter: drop-shadow(0 3px 6px rgba(255, 140, 180, 0.45));
@@ -1032,13 +1031,14 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* ========== 手机端：上下堆叠，高度撑满 ========== */
+  /* ========== 手机端：上下堆叠，画布高度由 JS 撑满 ========== */
   @media (max-width: 860px) {
     body {
-      padding: 6px 6px 8px;
+      padding: 6px;
       height: 100dvh;
       overflow: hidden;
     }
+
     .app {
       gap: 6px;
       height: 100%;
