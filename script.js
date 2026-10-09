@@ -43,12 +43,21 @@ const callTransition = document.getElementById("callTransition");
 const callImg = document.getElementById("callImg");
 const callBurst = document.getElementById("callBurst");
 
-/* 内部坐标系 320 × 480（更方一些，手机好塞） */
+/* 内部坐标系 */
 const BASE_W = 320;
 const BASE_H = 480;
 
-/* 图片原始尺寸表 */
-const imageDims = {};
+/* 每级图片颜色（fallback 用） */
+const FALLBACK_COLORS = [
+  { light: "#ffe0ec", dark: "#ffb3ce" },
+  { light: "#ffc9dd", dark: "#ff8fb1" },
+  { light: "#ffb3ce", dark: "#ff6b95" },
+  { light: "#ff97b9", dark: "#ff4d7e" },
+  { light: "#ff7ea4", dark: "#e55b84" },
+  { light: "#ec6689", dark: "#d94a76" },
+  { light: "#d94a76", dark: "#c73a66" },
+  { light: "#c73a66", dark: "#a82a55" }
+];
 
 const LEVEL = [
   { radius: 16, score: 1, src: "img/0.png" },
@@ -61,60 +70,121 @@ const LEVEL = [
   { radius: 76, score: 100, src: "img/7.png" }
 ];
 
-/* =========================================================
-   预加载：记录每张图片原始宽高
-   ========================================================= */
+/* 存每张图的有效 src（原图可用，或 fallback dataURL） */
+const finalSrc = {};
+
+/* 生成 fallback 图案（圆形渐变 + 光斑） */
+function makeFallbackDataURL(idx) {
+  const c = document.createElement("canvas");
+  c.width = 500;
+  c.height = 500;
+  const ctx = c.getContext("2d");
+
+  const { light, dark } = FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
+
+  // 主圆
+  const grad = ctx.createRadialGradient(200, 180, 40, 250, 250, 260);
+  grad.addColorStop(0, light);
+  grad.addColorStop(1, dark);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(250, 250, 240, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 右上光斑
+  ctx.fillStyle = "rgba(255,255,255,0.55)";
+  ctx.beginPath();
+  ctx.arc(170, 170, 70, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 中心小亮点
+  ctx.fillStyle = "rgba(255,255,255,0.85)";
+  ctx.beginPath();
+  ctx.arc(155, 155, 28, 0, Math.PI * 2);
+  ctx.fill();
+
+  return c.toDataURL();
+}
+
+/* 图片原始尺寸 */
+const imageDims = {};
+
+/* 预加载 */
 function preloadImages() {
   return Promise.all(
-    LEVEL.map(
-      (item) =>
-        new Promise((resolve) => {
-          const img = new Image();
-          img.src = item.src;
-          img.onload = () => {
-            const w = img.naturalWidth || img.width || 0;
-            const h = img.naturalHeight || img.height || 0;
-            imageDims[item.src] = w > 0 && h > 0 ? { w, h } : null;
-            resolve(true);
-          };
-          img.onerror = () => {
-            console.warn("图片加载失败：", item.src);
-            imageDims[item.src] = null;
-            resolve(true);
-          };
-        })
+    LEVEL.map((item, idx) =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.src = item.src;
+
+        img.onload = () => {
+          const w = img.naturalWidth || img.width || 0;
+          const h = img.naturalHeight || img.height || 0;
+          if (w > 0 && h > 0) {
+            imageDims[item.src] = { w, h };
+            finalSrc[item.src] = item.src;
+          } else {
+            imageDims[item.src] = { w: 500, h: 500 };
+            finalSrc[item.src] = makeFallbackDataURL(idx);
+          }
+          resolve(true);
+        };
+
+        img.onerror = () => {
+          console.warn("图片加载失败，使用 fallback：", item.src);
+          imageDims[item.src] = { w: 500, h: 500 };
+          finalSrc[item.src] = makeFallbackDataURL(idx);
+          resolve(true);
+        };
+      })
     )
   );
 }
 
-/* =========================================================
-   sprite 配置：
-   - 图片尺寸已知 → 按原始宽高分别缩放，让 sprite 显示为 2r × 2r 正方形
-   - 图片尺寸未知 → 退回按半径比例（能显示，不崩）
-   ========================================================= */
+/* sprite 配置 */
 function makeSpriteConfig(lv) {
+  const src = finalSrc[lv.src] || lv.src;
+  const dim = imageDims[lv.src] || { w: 500, h: 500 };
   const targetSize = lv.radius * 2;
-  const dim = imageDims[lv.src];
-
-  if (dim && dim.w > 0 && dim.h > 0) {
-    return {
-      texture: lv.src,
-      xScale: targetSize / dim.w,
-      yScale: targetSize / dim.h
-    };
-  }
-
-  const fallback = lv.radius / 250;
   return {
-    texture: lv.src,
-    xScale: fallback,
-    yScale: fallback
+    texture: src,
+    xScale: targetSize / dim.w,
+    yScale: targetSize / dim.h
   };
 }
 
-/* =========================================================
-   画布显示尺寸：手机端宽度撑满，高度按比例
-   ========================================================= */
+/* 让 UI 的 <img> 也用 fallback */
+function applyImgFallback() {
+  LEVEL.forEach((item) => {
+    if (finalSrc[item.src] && finalSrc[item.src] !== item.src) {
+      // 替换所有引用这张图的 <img>
+      document.querySelectorAll(`img[src="${item.src}"]`).forEach((el) => {
+        el.src = finalSrc[item.src];
+      });
+    }
+  });
+  // 下一个预览也替换
+  const nextSrc = nextImgDom ? nextImgDom.getAttribute("src") : "";
+  if (nextSrc && finalSrc[nextSrc] && finalSrc[nextSrc] !== nextSrc) {
+    if (nextImgDom) nextImgDom.src = finalSrc[nextSrc];
+  }
+  const nextSrcMobile = nextImgMobileDom
+    ? nextImgMobileDom.getAttribute("src")
+    : "";
+  if (
+    nextSrcMobile &&
+    finalSrc[nextSrcMobile] &&
+    finalSrc[nextSrcMobile] !== nextSrcMobile
+  ) {
+    if (nextImgMobileDom) nextImgMobileDom.src = finalSrc[nextSrcMobile];
+  }
+  const previewSrc = previewImg ? previewImg.getAttribute("src") : "";
+  if (previewSrc && finalSrc[previewSrc] && finalSrc[previewSrc] !== previewSrc) {
+    if (previewImg) previewImg.src = finalSrc[previewSrc];
+  }
+}
+
+/* 显示尺寸：手机端宽度撑满 */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
@@ -151,9 +221,7 @@ function applyDisplaySize() {
   }
 }
 
-/* =========================================================
-   常量 & 状态
-   ========================================================= */
+/* 常量 & 状态 */
 let deadLineY = 100;
 function computeDeadLine() {
   return Math.round(BASE_H * (100 / 520));
@@ -215,9 +283,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
   localStorage.setItem("flowerBestScore", 0);
 }
 
-/* =========================================================
-   音效
-   ========================================================= */
+/* 音效 */
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
@@ -267,9 +333,7 @@ const haptic = (ms) => {
   } catch (e) {}
 };
 
-/* =========================================================
-   UI 同步
-   ========================================================= */
+/* UI 同步 */
 const syncScore = (v) => {
   if (scoreDom) scoreDom.textContent = v;
   if (scoreMobileDom) scoreMobileDom.textContent = v;
@@ -279,8 +343,9 @@ const syncBest = (v) => {
   if (bestScoreMobileDom) bestScoreMobileDom.textContent = v;
 };
 const syncNext = (src) => {
-  if (nextImgDom) nextImgDom.src = src;
-  if (nextImgMobileDom) nextImgMobileDom.src = src;
+  const realSrc = finalSrc[src] || src;
+  if (nextImgDom) nextImgDom.src = realSrc;
+  if (nextImgMobileDom) nextImgMobileDom.src = realSrc;
 };
 
 const rollQuote = () => {
@@ -321,9 +386,7 @@ const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "
 const comboName = (n) =>
   COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 
-/* =========================================================
-   死亡线
-   ========================================================= */
+/* 死亡线绘制 */
 function drawDeadLine() {
   if (!render || !render.context) return;
   const ctx = render.context;
@@ -374,9 +437,7 @@ function drawDeadLine() {
   ctx.restore();
 }
 
-/* =========================================================
-   目标
-   ========================================================= */
+/* 目标 */
 function generateGoals() {
   const pool = [
     { id: "score50",  text: "单局达到 50 分",  target: 50,  get: () => score,      reward: 15 },
@@ -426,9 +487,7 @@ function checkGoals() {
   renderGoals();
 }
 
-/* =========================================================
-   飘字 / 粒子
-   ========================================================= */
+/* 飘字 / 粒子 */
 function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -503,9 +562,7 @@ function spawnClickPulseAtCanvas(x, y) {
   setTimeout(() => ring.remove(), 650);
 }
 
-/* =========================================================
-   连击
-   ========================================================= */
+/* 连击 */
 function triggerCombo() {
   combo += 1;
   maxCombo = Math.max(maxCombo, combo);
@@ -569,11 +626,10 @@ soundToggle.onclick = (e) => {
   }
 };
 
-/* =========================================================
-   初始化
-   ========================================================= */
+/* 初始化 */
 async function initGame() {
   await preloadImages();
+  applyImgFallback();
 
   score = 0;
   balls = [];
@@ -622,7 +678,6 @@ async function initGame() {
   runner = Runner.create();
   Runner.run(runner, engine);
 
-  // Render.create 会把 canvas.style 重置成 320×480，之后再应用显示尺寸
   applyDisplaySize();
 
   const ground = Bodies.rectangle(BASE_W / 2, BASE_H + 20, BASE_W, 40, {
@@ -646,7 +701,7 @@ async function initGame() {
   pickNext();
   updatePreview();
 
-  /* --------- 输入 --------- */
+  /* 输入 */
   function handlePointerMove(clientX) {
     if (!gameRunning) return;
     const rect = canvasEl.getBoundingClientRect();
@@ -719,7 +774,7 @@ async function initGame() {
     }, 300);
   }
 
-  /* --------- 碰撞合并 --------- */
+  /* 碰撞合并 */
   Events.on(engine, "collisionStart", (e) => {
     const pairs = e.pairs;
     for (const pair of pairs) {
@@ -761,7 +816,7 @@ async function initGame() {
     }
   });
 
-  /* --------- 死亡检测 --------- */
+  /* 死亡检测 */
   Events.on(engine, "afterUpdate", () => {
     if (!gameRunning) return;
     const now = Date.now();
@@ -783,9 +838,7 @@ async function initGame() {
   });
 }
 
-/* =========================================================
-   生成球 / 合成球
-   ========================================================= */
+/* 生成球 */
 function spawnBall(x, levelIndex) {
   const lv = LEVEL[levelIndex];
   const ball = Bodies.circle(x, -60, lv.radius, {
@@ -800,6 +853,7 @@ function spawnBall(x, levelIndex) {
   balls.push(ball);
 }
 
+/* 合成球 */
 function createMergedBall(x, y, levelIndex, mult) {
   const lv = LEVEL[levelIndex];
   const ball = Bodies.circle(x, y, lv.radius, {
@@ -841,12 +895,13 @@ function createMergedBall(x, y, levelIndex, mult) {
 
 function updatePreview() {
   syncNext(LEVEL[nextLevelIndex].src);
-  previewImg.src = LEVEL[nextLevelIndex].src;
+  if (previewImg) {
+    const real = finalSrc[LEVEL[nextLevelIndex].src] || LEVEL[nextLevelIndex].src;
+    previewImg.src = real;
+  }
 }
 
-/* =========================================================
-   结束 / 重开
-   ========================================================= */
+/* 结束 / 重开 */
 function gameOver() {
   if (!gameRunning) return;
   gameRunning = false;
@@ -886,15 +941,14 @@ function restartGame() {
   initGame();
 }
 
-/* =========================================================
-   转场
-   ========================================================= */
+/* 转场 */
 function showLoveTransition() {
   if (loveHideTimer) clearTimeout(loveHideTimer);
   loveTransition.classList.remove("show");
   void loveTransition.offsetWidth;
 
-  loveImg.src = LEVEL[LEVEL.length - 1].src;
+  const lastLv = LEVEL[LEVEL.length - 1];
+  loveImg.src = finalSrc[lastLv.src] || lastLv.src;
   loveBurst.innerHTML = "";
 
   const particles = ["❤️", "💕", "💖", "🌸", "💗", "🌷", "✨"];
@@ -926,7 +980,8 @@ function showLoveTransition() {
 }
 
 function showCallTransition() {
-  callImg.src = LEVEL[6].src;
+  const lv = LEVEL[6];
+  callImg.src = finalSrc[lv.src] || lv.src;
   callBurst.innerHTML = "";
   const particles = ["🔥", "👑", "💥", "⭐", "✨"];
   for (let i = 0; i < 22; i++) {
@@ -968,9 +1023,7 @@ function createHeartRain() {
   }
 }
 
-/* =========================================================
-   背景花瓣（手机端禁用）
-   ========================================================= */
+/* 背景花瓣 */
 function startAmbientPetals() {
   if (window.innerWidth <= 860) return;
   const petals = ["🌸", "🌷", "💮", "🌺"];
@@ -988,9 +1041,7 @@ function startAmbientPetals() {
   }, 1800);
 }
 
-/* =========================================================
-   窗口变化
-   ========================================================= */
+/* 窗口变化 */
 let resizeTimer = null;
 window.addEventListener("resize", () => {
   if (resizeTimer) clearTimeout(resizeTimer);
