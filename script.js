@@ -43,14 +43,11 @@ const callTransition = document.getElementById("callTransition");
 const callImg = document.getElementById("callImg");
 const callBurst = document.getElementById("callBurst");
 
-/* =========================================================
-   ★ 内部坐标系改成 320 × 480（更方一些，手机更容易塞下）
-   所有依赖 BASE_H 的地方都自动跟随
-   ========================================================= */
+/* 内部坐标系 320 × 480（更方一些，手机好塞） */
 const BASE_W = 320;
 const BASE_H = 480;
 
-/* --------- 图片原始尺寸（保持 sprite 正方形） --------- */
+/* 图片原始尺寸表 */
 const imageDims = {};
 
 const LEVEL = [
@@ -64,55 +61,71 @@ const LEVEL = [
   { radius: 76, score: 100, src: "img/7.png" }
 ];
 
+/* =========================================================
+   预加载：记录每张图片原始宽高
+   ========================================================= */
 function preloadImages() {
   return Promise.all(
-    LEVEL.map((item) =>
-      new Promise((resolve) => {
-        const img = new Image();
-        img.src = item.src;
-        img.onload = () => {
-          imageDims[item.src] = {
-            w: img.naturalWidth || 500,
-            h: img.naturalHeight || 500
+    LEVEL.map(
+      (item) =>
+        new Promise((resolve) => {
+          const img = new Image();
+          img.src = item.src;
+          img.onload = () => {
+            const w = img.naturalWidth || img.width || 0;
+            const h = img.naturalHeight || img.height || 0;
+            imageDims[item.src] = w > 0 && h > 0 ? { w, h } : null;
+            resolve(true);
           };
-          resolve(true);
-        };
-        img.onerror = () => {
-          console.warn("图片加载失败：", item.src);
-          imageDims[item.src] = { w: 500, h: 500 };
-          resolve(true);
-        };
-      })
+          img.onerror = () => {
+            console.warn("图片加载失败：", item.src);
+            imageDims[item.src] = null;
+            resolve(true);
+          };
+        })
     )
   );
 }
 
+/* =========================================================
+   sprite 配置：
+   - 图片尺寸已知 → 按原始宽高分别缩放，让 sprite 显示为 2r × 2r 正方形
+   - 图片尺寸未知 → 退回按半径比例（能显示，不崩）
+   ========================================================= */
 function makeSpriteConfig(lv) {
-  const dim = imageDims[lv.src] || { w: 500, h: 500 };
   const targetSize = lv.radius * 2;
+  const dim = imageDims[lv.src];
+
+  if (dim && dim.w > 0 && dim.h > 0) {
+    return {
+      texture: lv.src,
+      xScale: targetSize / dim.w,
+      yScale: targetSize / dim.h
+    };
+  }
+
+  const fallback = lv.radius / 250;
   return {
     texture: lv.src,
-    xScale: targetSize / dim.w,
-    yScale: targetSize / dim.h
+    xScale: fallback,
+    yScale: fallback
   };
 }
 
 /* =========================================================
-   ★ 显示尺寸 — 手机端优先宽度撑满，高度按比例
+   画布显示尺寸：手机端宽度撑满，高度按比例
    ========================================================= */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H; // 320/480 ≈ 0.6667
+  const ratio = BASE_W / BASE_H;
 
   if (vw <= 860) {
-    // 手机端：宽度 = 屏宽 - 12，几乎撑满
     const w = vw - 12;
     const h = Math.round(w / ratio);
     return { w: Math.round(w), h };
   }
 
-  // 桌面端
   const maxW = 360;
   const maxH = vh * 0.78;
   let w = maxW;
@@ -139,7 +152,7 @@ function applyDisplaySize() {
 }
 
 /* =========================================================
-   其他状态
+   常量 & 状态
    ========================================================= */
 let deadLineY = 100;
 function computeDeadLine() {
@@ -202,13 +215,17 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
   localStorage.setItem("flowerBestScore", 0);
 }
 
-/* --------- 音效 --------- */
+/* =========================================================
+   音效
+   ========================================================= */
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
     try {
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    } catch (e) { audioCtx = null; }
+    } catch (e) {
+      audioCtx = null;
+    }
   }
   if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
 }
@@ -227,6 +244,7 @@ function playTone(freq, duration, type, gainVal, delay) {
   osc.start(t0);
   osc.stop(t0 + (duration || 0.12) + 0.05);
 }
+
 const sfxMerge = (level) => {
   const base = 440 + level * 60;
   playTone(base, 0.12, "sine", 0.14, 0);
@@ -244,10 +262,14 @@ const sfxOver = () => {
   playTone(220, 0.35, "sine", 0.14, 0.28);
 };
 const haptic = (ms) => {
-  try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {}
+  try {
+    if (navigator.vibrate) navigator.vibrate(ms || 12);
+  } catch (e) {}
 };
 
-/* --------- UI 同步 --------- */
+/* =========================================================
+   UI 同步
+   ========================================================= */
 const syncScore = (v) => {
   if (scoreDom) scoreDom.textContent = v;
   if (scoreMobileDom) scoreMobileDom.textContent = v;
@@ -260,6 +282,7 @@ const syncNext = (src) => {
   if (nextImgDom) nextImgDom.src = src;
   if (nextImgMobileDom) nextImgMobileDom.src = src;
 };
+
 const rollQuote = () => {
   const q = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
   panelTag.textContent = q;
@@ -280,11 +303,27 @@ const getWeights = () => {
   });
 };
 
+function pickNext() {
+  const weights = getWeights();
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < weights.length; i++) {
+    r -= weights[i];
+    if (r <= 0) {
+      nextLevelIndex = i;
+      return;
+    }
+  }
+  nextLevelIndex = 0;
+}
+
 const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "神迹"];
 const comboName = (n) =>
   COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 
-/* --------- 死亡线 --------- */
+/* =========================================================
+   死亡线
+   ========================================================= */
 function drawDeadLine() {
   if (!render || !render.context) return;
   const ctx = render.context;
@@ -335,7 +374,9 @@ function drawDeadLine() {
   ctx.restore();
 }
 
-/* --------- 目标 --------- */
+/* =========================================================
+   目标
+   ========================================================= */
 function generateGoals() {
   const pool = [
     { id: "score50",  text: "单局达到 50 分",  target: 50,  get: () => score,      reward: 15 },
@@ -385,7 +426,9 @@ function checkGoals() {
   renderGoals();
 }
 
-/* --------- 飘字 / 粒子 --------- */
+/* =========================================================
+   飘字 / 粒子
+   ========================================================= */
 function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -460,14 +503,17 @@ function spawnClickPulseAtCanvas(x, y) {
   setTimeout(() => ring.remove(), 650);
 }
 
-/* --------- 连击 --------- */
+/* =========================================================
+   连击
+   ========================================================= */
 function triggerCombo() {
   combo += 1;
   maxCombo = Math.max(maxCombo, combo);
   if (combo >= 2 && comboBadge) {
     comboBadge.style.display = "block";
     comboBadge.textContent =
-      comboName(combo) + " ×" + combo + "  分数 ×" + (1 + (combo - 1) * 0.2).toFixed(1);
+      comboName(combo) + " ×" + combo + "  分数 ×" +
+      (1 + (combo - 1) * 0.2).toFixed(1);
     sfxCombo(combo);
   }
   if (comboTimer) clearTimeout(comboTimer);
@@ -576,18 +622,22 @@ async function initGame() {
   runner = Runner.create();
   Runner.run(runner, engine);
 
-  // Render.create 会重置 canvas.style，所以要在之后设置
+  // Render.create 会把 canvas.style 重置成 320×480，之后再应用显示尺寸
   applyDisplaySize();
 
   const ground = Bodies.rectangle(BASE_W / 2, BASE_H + 20, BASE_W, 40, {
-    isStatic: true, label: "ground"
+    isStatic: true,
+    label: "ground"
   });
   const leftWall = Bodies.rectangle(-10, BASE_H / 2, 20, BASE_H, {
-    isStatic: true, label: "wallLeft"
+    isStatic: true,
+    label: "wallLeft"
   });
   const rightWall = Bodies.rectangle(BASE_W + 10, BASE_H / 2, 20, BASE_H, {
-    isStatic: true, label: "wallRight"
+    isStatic: true,
+    label: "wallRight"
   });
+
   World.add(engine.world, [ground, leftWall, rightWall]);
 
   Events.on(render, "afterRender", drawDeadLine);
@@ -596,7 +646,7 @@ async function initGame() {
   pickNext();
   updatePreview();
 
-  /* ----- 输入 ----- */
+  /* --------- 输入 --------- */
   function handlePointerMove(clientX) {
     if (!gameRunning) return;
     const rect = canvasEl.getBoundingClientRect();
@@ -624,6 +674,7 @@ async function initGame() {
     aimLine.style.display = "none";
     floatingPreview.style.display = "none";
   };
+
   canvasEl.ontouchstart = (e) => {
     ensureAudio();
     const t = e.touches[0];
@@ -663,10 +714,12 @@ async function initGame() {
     updatePreview();
     aimLine.style.display = "none";
     floatingPreview.style.display = "none";
-    setTimeout(() => { isClickLocked = false; }, 300);
+    setTimeout(() => {
+      isClickLocked = false;
+    }, 300);
   }
 
-  /* ----- 碰撞合并 ----- */
+  /* --------- 碰撞合并 --------- */
   Events.on(engine, "collisionStart", (e) => {
     const pairs = e.pairs;
     for (const pair of pairs) {
@@ -708,7 +761,7 @@ async function initGame() {
     }
   });
 
-  /* ----- 死亡检测 ----- */
+  /* --------- 死亡检测 --------- */
   Events.on(engine, "afterUpdate", () => {
     if (!gameRunning) return;
     const now = Date.now();
@@ -716,7 +769,10 @@ async function initGame() {
     for (const b of balls) {
       if (b.birthTime && now - b.birthTime < SPAWN_PROTECT_MS) continue;
       const ballTop = b.position.y - b.circleRadius;
-      if (ballTop < deadLineY) { anyOverLine = true; break; }
+      if (ballTop < deadLineY) {
+        anyOverLine = true;
+        break;
+      }
     }
     if (anyOverLine) {
       overLineTimer += engine.timing.lastDelta || 16.6;
@@ -727,7 +783,9 @@ async function initGame() {
   });
 }
 
-/* --------- 生成球 --------- */
+/* =========================================================
+   生成球 / 合成球
+   ========================================================= */
 function spawnBall(x, levelIndex) {
   const lv = LEVEL[levelIndex];
   const ball = Bodies.circle(x, -60, lv.radius, {
@@ -786,7 +844,9 @@ function updatePreview() {
   previewImg.src = LEVEL[nextLevelIndex].src;
 }
 
-/* --------- 结束 / 重开 --------- */
+/* =========================================================
+   结束 / 重开
+   ========================================================= */
 function gameOver() {
   if (!gameRunning) return;
   gameRunning = false;
@@ -826,7 +886,9 @@ function restartGame() {
   initGame();
 }
 
-/* --------- 转场 --------- */
+/* =========================================================
+   转场
+   ========================================================= */
 function showLoveTransition() {
   if (loveHideTimer) clearTimeout(loveHideTimer);
   loveTransition.classList.remove("show");
@@ -885,7 +947,9 @@ function showCallTransition() {
   callTransition.classList.add("show");
   setTimeout(() => {
     callTransition.classList.remove("show");
-    setTimeout(() => { callBurst.innerHTML = ""; }, 700);
+    setTimeout(() => {
+      callBurst.innerHTML = "";
+    }, 700);
   }, 2800);
 }
 
@@ -904,7 +968,9 @@ function createHeartRain() {
   }
 }
 
-/* --------- 背景花瓣 --------- */
+/* =========================================================
+   背景花瓣（手机端禁用）
+   ========================================================= */
 function startAmbientPetals() {
   if (window.innerWidth <= 860) return;
   const petals = ["🌸", "🌷", "💮", "🌺"];
@@ -922,7 +988,9 @@ function startAmbientPetals() {
   }, 1800);
 }
 
-/* --------- 窗口变化 --------- */
+/* =========================================================
+   窗口变化
+   ========================================================= */
 let resizeTimer = null;
 window.addEventListener("resize", () => {
   if (resizeTimer) clearTimeout(resizeTimer);
