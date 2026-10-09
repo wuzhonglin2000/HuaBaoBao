@@ -66,7 +66,7 @@ const LOVE_QUOTES = [
   "花宝宝，你问我喜欢你哪里，我哪都喜欢"
 ];
 
-/* 结算情话：每次随机一条 */
+/* 结算情话：随机一条 */
 const FINAL_QUOTES = [
   "花宝宝，你永远是我的满分答案💯",
   "花宝宝，这一局也好想抱抱你 🤗",
@@ -134,6 +134,7 @@ function computeDisplaySize() {
   return { w: Math.round(w), h: Math.round(h) };
 }
 
+/* 关键：让 leftCol 自己居中，不被父容器推歪 */
 function applyDisplaySize() {
   const size = computeDisplaySize();
   canvasEl.style.width = size.w + "px";
@@ -141,14 +142,23 @@ function applyDisplaySize() {
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
-  // 手机端：让卡片、画布外框与画布对齐
   if (window.innerWidth <= 860 && leftCol && mobileStats) {
-    const totalW = size.w + 12;
+    const totalW = size.w + 12; // game-wrap padding 6*2
     leftCol.style.width = totalW + "px";
+    leftCol.style.maxWidth = "none";
+    leftCol.style.flexShrink = "0";
+    leftCol.style.marginLeft = "auto";
+    leftCol.style.marginRight = "auto";
     mobileStats.style.width = "100%";
     gameWrap.style.width = "100%";
   } else {
-    if (leftCol) leftCol.style.width = "";
+    if (leftCol) {
+      leftCol.style.width = "";
+      leftCol.style.maxWidth = "";
+      leftCol.style.flexShrink = "";
+      leftCol.style.marginLeft = "";
+      leftCol.style.marginRight = "";
+    }
     if (mobileStats) mobileStats.style.width = "";
     if (gameWrap) gameWrap.style.width = "";
   }
@@ -840,7 +850,7 @@ function gameOver() {
   finalMergesDom.textContent = mergeCount;
   finalTimeDom.textContent = usedSec + "s";
   finalBestDom.textContent = bestScore;
-  finalQuoteDom.textContent = pickFinalQuote();  // ← 随机一条，不看分数
+  finalQuoteDom.textContent = pickFinalQuote();
 
   gameOverModal.style.display = "flex";
 }
