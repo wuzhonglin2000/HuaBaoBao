@@ -105,22 +105,38 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
-/* 核心：让显示宽高比严格 = 320:520
-   手机端：宽 = 屏宽 - 20，最大 460；高按比例
-   桌面端：宽 360，高按比例，不超过视口 78% */
+/* ================================================================
+   画布尺寸计算
+   - 严格保持 320:520 比例 → 球不会变形
+   - 手机端高度 = 视口 - 预留(卡片+面板+间距) → 屏幕不空
+   ================================================================ */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const ratio = BASE_W / BASE_H; // 320 / 520 ≈ 0.61538
 
   if (vw <= 860) {
-    const w = Math.min(vw - 20, 460);
-    const h = Math.round(w / ratio);
-    return { w: Math.round(w), h };
+    // 手机端
+    const maxW = vw - 12; // 左右 padding 6px
+    // 预留：卡片约 70 + 面板约 150 + 间距约 24
+    const reserve = 244;
+    const maxH = vh - reserve;
+
+    let w = maxW;
+    let h = w / ratio;
+
+    // 如果按宽度算出的高度超了预留，就反过来按高度算宽度
+    if (h > maxH) {
+      h = maxH;
+      w = h * ratio;
+    }
+
+    return { w: Math.round(w), h: Math.round(h) };
   }
 
+  // 桌面端
   const maxW = 360;
-  const maxH = vh * 0.78;
+  const maxH = vh * 0.72;
   let w = maxW;
   let h = w / ratio;
   if (h > maxH) {
@@ -130,10 +146,9 @@ function computeDisplaySize() {
   return { w: Math.round(w), h: Math.round(h) };
 }
 
-/* 手机端：leftCol 和 rightCol 的宽度 = 画布宽度
-   → 卡片、画布、面板三者同宽 */
 function applyDisplaySize() {
   const size = computeDisplaySize();
+
   canvasEl.style.width = size.w + "px";
   canvasEl.style.height = size.h + "px";
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;

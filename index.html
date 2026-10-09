@@ -11,18 +11,18 @@
   html, body { height: 100%; overscroll-behavior: none; }
 
   body {
-    min-height: 100dvh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 16px;
+    padding: 8px;
     background:
       radial-gradient(circle at 20% 10%, #fff5f8 0%, transparent 50%),
       radial-gradient(circle at 80% 90%, #f0f7ff 0%, transparent 50%),
       linear-gradient(135deg, #ffeef5 0%, #f7f0ff 50%, #eaf4ff 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
       "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
-    overflow-x: hidden;
+    overflow: hidden;
     position: relative;
     touch-action: manipulation;
     color: #5a4a52;
@@ -132,8 +132,9 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 14px;
+    gap: 8px;
     width: 100%;
+    height: 100%;
     opacity: 0;
     animation: appIn 0.9s ease-out 1.5s forwards;
   }
@@ -165,6 +166,7 @@
     background: linear-gradient(90deg, transparent, #e88aa8, transparent);
   }
 
+  /* 主区：桌面左右，手机上下 */
   .main {
     position: relative;
     z-index: 1;
@@ -179,27 +181,28 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex-shrink: 0;
   }
   .right-col {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     flex-shrink: 0;
   }
 
   .mobile-stats {
     display: none;
-    gap: 8px;
+    gap: 6px;
     width: 100%;
+    flex-shrink: 0;
   }
   .mobile-stats .stat-card {
     flex: 1;
     background: linear-gradient(180deg, #ffffff 0%, #fff8fb 100%);
-    border-radius: 18px;
-    padding: 12px 8px;
+    border-radius: 16px;
+    padding: 8px 6px;
     text-align: center;
     box-shadow:
       inset 0 0 0 1px rgba(255, 210, 225, 0.9),
@@ -212,7 +215,7 @@
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 2px;
-    border-radius: 18px 18px 0 0;
+    border-radius: 16px 16px 0 0;
     background: linear-gradient(90deg, transparent, #ffc2d6, transparent);
   }
   .mobile-stats .stat-card .label {
@@ -222,7 +225,7 @@
     margin-bottom: 2px;
   }
   .mobile-stats .stat-card .value {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: 800;
     color: #d94a76;
     line-height: 1.1;
@@ -270,7 +273,7 @@
     100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
-  /* 画布外框：宽度由 JS 设成和画布一样 */
+  /* 画布外框：宽高都由 JS 控制 */
   .game-wrap {
     position: relative;
     border-radius: 18px;
@@ -301,6 +304,7 @@
       0 0 0 1px rgba(255, 200, 220, 0.4);
     touch-action: none;
     cursor: pointer;
+    /* 不设 width / height，全部由 JS 内联样式控制 */
   }
 
   .sign-icon {
@@ -1028,26 +1032,38 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* ========== 手机端：宽度由 JS 统一设置，二者同宽 ========== */
+  /* ========== 手机端：上下堆叠，高度撑满 ========== */
   @media (max-width: 860px) {
-    body { padding: 8px; }
-    .app { gap: 8px; width: 100%; }
+    body {
+      padding: 6px 6px 8px;
+      height: 100dvh;
+      overflow: hidden;
+    }
+    .app {
+      gap: 6px;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+    }
 
     .topbar { display: none; }
 
     .main {
       flex-direction: column;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
       max-width: 100%;
       width: 100%;
+      flex: 1;
+      min-height: 0;
+      display: flex;
     }
 
-    /* 左右列：宽度由 JS 设成画布宽，居中 */
     .left-col,
     .right-col {
       align-items: stretch;
-      gap: 8px;
+      gap: 6px;
       width: auto;
       flex-shrink: 0;
       margin-left: auto;
@@ -1056,15 +1072,15 @@
 
     .mobile-stats {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       width: 100%;
     }
     .mobile-stats .stat-card {
-      padding: 12px 8px;
-      border-radius: 18px;
+      padding: 6px 6px;
+      border-radius: 14px;
     }
-    .mobile-stats .stat-card .label { font-size: 10px; }
-    .mobile-stats .stat-card .value { font-size: 20px; }
+    .mobile-stats .stat-card .label { font-size: 9px; }
+    .mobile-stats .stat-card .value { font-size: 18px; }
 
     .goal-box { display: none !important; }
     #comboBadge { display: none !important; }
@@ -1073,54 +1089,50 @@
     .game-wrap {
       padding: 0;
       border-radius: 18px;
-      width: 100%;
       box-sizing: border-box;
       box-shadow:
         0 0 0 1px rgba(255, 200, 220, 0.7),
         0 0 0 4px rgba(255, 255, 255, 0.6),
         0 12px 30px rgba(255, 160, 190, 0.25);
     }
-    canvas {
-      border-radius: 18px;
-    }
 
     .next-badge { display: flex; }
 
     .sign-icon {
-      width: 40px;
-      height: 40px;
-      top: 12px;
-      left: 12px;
+      width: 36px;
+      height: 36px;
+      top: 10px;
+      left: 10px;
     }
 
     .panel {
       width: 100%;
       max-width: 100%;
-      padding: 14px 14px 16px;
-      border-radius: 18px;
+      padding: 10px 12px 12px;
+      border-radius: 14px;
     }
     .panel .tip { display: none; }
 
     .panel-tag {
-      font-size: 13px;
+      font-size: 12px;
       padding: 0 32px;
-      margin-bottom: 14px;
-      min-height: 24px;
+      margin-bottom: 10px;
+      min-height: 20px;
     }
 
     #restartBtn {
-      padding: 13px;
-      font-size: 15px;
+      padding: 11px;
+      font-size: 14px;
       letter-spacing: 2px;
       border-radius: 12px;
     }
 
     .sound-toggle {
-      width: 26px;
-      height: 26px;
-      font-size: 12px;
-      top: 8px;
-      right: 8px;
+      width: 24px;
+      height: 24px;
+      font-size: 11px;
+      top: 6px;
+      right: 6px;
     }
 
     #heartContainer { display: none !important; }
