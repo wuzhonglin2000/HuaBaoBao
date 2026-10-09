@@ -466,7 +466,6 @@ function spawnSpeechBubbleAtCanvas(x, y, text) {
   bubble.className = "speech-bubble";
   bubble.textContent = text;
 
-  // 气泡宽度估算：中文 12px * 字数 + padding
   const estimatedW = text.length * 12 + 24;
   const halfW = estimatedW / 2;
   const minX = halfW + 8;
@@ -618,7 +617,7 @@ async function initGame() {
   pickNext();
   updatePreview();
 
-  /* ===== 方案 1：长按拖拽瞄准 + 松手投放（手机端修复版） ===== */
+  /* ===== 方案 1：长按拖拽瞄准 + 松手投放 ===== */
   let isDragging = false;
   let dragStartX = 0;
   let dragStartY = 0;
@@ -680,7 +679,6 @@ async function initGame() {
     }, 300);
   }
 
-  /* --- 鼠标（PC） --- */
   canvasEl.onmousemove = (e) => {
     if (!gameRunning) return;
     if (isTouchDevice) return;
@@ -698,7 +696,6 @@ async function initGame() {
     doDrop(x);
   };
 
-  /* --- 触摸（手机）--- */
   canvasEl.addEventListener("touchstart", (e) => {
     if (!gameRunning) return;
     ensureAudio();
@@ -783,7 +780,6 @@ async function initGame() {
       mergeCount++;
       triggerCombo();
 
-      // 方案 7：合成气泡
       const bubbleText = BUBBLE_TEXTS[Math.floor(Math.random() * BUBBLE_TEXTS.length)];
       spawnSpeechBubbleAtCanvas(newX, newY, bubbleText);
 
@@ -873,7 +869,6 @@ function createMergedBall(x, y, levelIndex, mult) {
     setTimeout(showLoveTransition, 350);
   }
 
-  // 叫爸爸：每次合成到 6 级都触发，用冷却防止连触
   if (levelIndex === 6 && !callCooldown) {
     callCooldown = true;
     setTimeout(() => {
@@ -1356,3 +1351,8 @@ window.addEventListener("orientationchange", () => {
 
 initGame();
 startAmbientPetals();
+
+/* ===== 把音效函数暴露给消消乐使用 ===== */
+window.sfxMerge = sfxMerge;
+window.sfxCombo = sfxCombo;
+window.playTone = playTone;
