@@ -3,6 +3,7 @@ const { Engine, Render, Runner, World, Bodies, Events } = Matter;
 const canvasEl = document.getElementById("gameCanvas");
 const gameWrap = document.getElementById("gameWrap");
 const leftCol = document.getElementById("leftCol");
+const rightCol = document.getElementById("rightCol");
 const mobileStats = document.getElementById("mobileStats");
 const aimLine = document.getElementById("aimLine");
 const floatingPreview = document.getElementById("floatingPreview");
@@ -104,15 +105,16 @@ function comboName(n) {
   return COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 }
 
-/* 手机端：宽 = 屏宽 - 20，几乎撑满；高严格按 320:520 比例
+/* 核心：让显示宽高比严格 = 320:520
+   手机端：宽 = 屏宽 - 20，最大 460；高按比例
    桌面端：宽 360，高按比例，不超过视口 78% */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H;
+  const ratio = BASE_W / BASE_H; // 320 / 520 ≈ 0.61538
 
   if (vw <= 860) {
-    const w = Math.min(vw - 20, 480);
+    const w = Math.min(vw - 20, 460);
     const h = Math.round(w / ratio);
     return { w: Math.round(w), h };
   }
@@ -128,36 +130,21 @@ function computeDisplaySize() {
   return { w: Math.round(w), h: Math.round(h) };
 }
 
-/* 手机端：leftCol 撑满 .main（由 CSS 处理），canvas 由 CSS width:100% 撑满 game-wrap。
-   这里只设置 canvas 的内部宽高和样式宽高 */
+/* 手机端：leftCol 和 rightCol 的宽度 = 画布宽度
+   → 卡片、画布、面板三者同宽 */
 function applyDisplaySize() {
   const size = computeDisplaySize();
-
   canvasEl.style.width = size.w + "px";
   canvasEl.style.height = size.h + "px";
   if (canvasEl.width !== BASE_W) canvasEl.width = BASE_W;
   if (canvasEl.height !== BASE_H) canvasEl.height = BASE_H;
 
   if (window.innerWidth <= 860) {
-    if (leftCol) {
-      leftCol.style.width = "";
-      leftCol.style.maxWidth = "";
-      leftCol.style.flexShrink = "";
-      leftCol.style.marginLeft = "";
-      leftCol.style.marginRight = "";
-    }
-    if (mobileStats) mobileStats.style.width = "";
-    if (gameWrap) gameWrap.style.width = "";
+    if (leftCol) leftCol.style.width = size.w + "px";
+    if (rightCol) rightCol.style.width = size.w + "px";
   } else {
-    if (leftCol) {
-      leftCol.style.width = "";
-      leftCol.style.maxWidth = "";
-      leftCol.style.flexShrink = "";
-      leftCol.style.marginLeft = "";
-      leftCol.style.marginRight = "";
-    }
-    if (mobileStats) mobileStats.style.width = "";
-    if (gameWrap) gameWrap.style.width = "";
+    if (leftCol) leftCol.style.width = "";
+    if (rightCol) rightCol.style.width = "";
   }
 }
 

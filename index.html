@@ -270,6 +270,7 @@
     100% { opacity: 0; transform: translate(-50%, -55px) scale(1); }
   }
 
+  /* 画布外框：宽度由 JS 设成和画布一样 */
   .game-wrap {
     position: relative;
     border-radius: 18px;
@@ -1027,45 +1028,40 @@
       0 4px 0 rgba(255, 255, 255, 0.9);
   }
 
-  /* ========== 手机端 ========== */
+  /* ========== 手机端：宽度由 JS 统一设置，二者同宽 ========== */
   @media (max-width: 860px) {
-    body { padding: 6px; }
-    .app { gap: 6px; width: 100%; }
+    body { padding: 8px; }
+    .app { gap: 8px; width: 100%; }
 
     .topbar { display: none; }
 
     .main {
       flex-direction: column;
-      align-items: stretch;
-      gap: 6px;
+      align-items: center;
+      gap: 8px;
       max-width: 100%;
       width: 100%;
-      padding: 0 4px;
     }
 
-    /* 左列：撑满 .main */
-    .left-col {
-      align-items: stretch;
-      gap: 6px;
-      width: 100%;
-      max-width: 100%;
-      margin: 0;
-    }
+    /* 左右列：宽度由 JS 设成画布宽，居中 */
+    .left-col,
     .right-col {
-      width: 100%;
-      max-width: 100%;
-      gap: 6px;
+      align-items: stretch;
+      gap: 8px;
+      width: auto;
+      flex-shrink: 0;
+      margin-left: auto;
+      margin-right: auto;
     }
 
-    /* 分数卡撑满 */
     .mobile-stats {
       display: flex;
-      gap: 6px;
+      gap: 8px;
       width: 100%;
     }
     .mobile-stats .stat-card {
-      padding: 10px 8px;
-      border-radius: 16px;
+      padding: 12px 8px;
+      border-radius: 18px;
     }
     .mobile-stats .stat-card .label { font-size: 10px; }
     .mobile-stats .stat-card .value { font-size: 20px; }
@@ -1074,10 +1070,9 @@
     #comboBadge { display: none !important; }
     .panel-top-stats { display: none !important; }
 
-    /* 画布撑满 */
     .game-wrap {
       padding: 0;
-      border-radius: 16px;
+      border-radius: 18px;
       width: 100%;
       box-sizing: border-box;
       box-shadow:
@@ -1086,8 +1081,7 @@
         0 12px 30px rgba(255, 160, 190, 0.25);
     }
     canvas {
-      width: 100% !important;
-      border-radius: 16px;
+      border-radius: 18px;
     }
 
     .next-badge { display: flex; }
@@ -1099,12 +1093,11 @@
       left: 12px;
     }
 
-    /* 下方面板撑满 */
     .panel {
       width: 100%;
       max-width: 100%;
       padding: 14px 14px 16px;
-      border-radius: 16px;
+      border-radius: 18px;
     }
     .panel .tip { display: none; }
 
@@ -1130,7 +1123,6 @@
       right: 8px;
     }
 
-    /* 手机端不显示爱心雨 */
     #heartContainer { display: none !important; }
   }
 </style>
@@ -1180,7 +1172,7 @@
         </div>
       </div>
 
-      <div class="right-col">
+      <div class="right-col" id="rightCol">
         <div class="panel">
           <button class="sound-toggle" id="soundToggle" aria-label="音效开关">🔊</button>
 
