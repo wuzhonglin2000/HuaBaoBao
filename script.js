@@ -43,12 +43,14 @@ const callTransition = document.getElementById("callTransition");
 const callImg = document.getElementById("callImg");
 const callBurst = document.getElementById("callBurst");
 
-const BASE_W = 320;
-const BASE_H = 520;
-
 /* =========================================================
-   ★ 关键 1：sprite 强制渲染成 2r × 2r 正方形
+   ★ 内部坐标系改成 320 × 480（更方一些，手机更容易塞下）
+   所有依赖 BASE_H 的地方都自动跟随
    ========================================================= */
+const BASE_W = 320;
+const BASE_H = 480;
+
+/* --------- 图片原始尺寸（保持 sprite 正方形） --------- */
 const imageDims = {};
 
 const LEVEL = [
@@ -96,29 +98,21 @@ function makeSpriteConfig(lv) {
 }
 
 /* =========================================================
-   ★ 关键 2：严格 320:520 比例
+   ★ 显示尺寸 — 手机端优先宽度撑满，高度按比例
    ========================================================= */
 function computeDisplaySize() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const ratio = BASE_W / BASE_H;
+  const ratio = BASE_W / BASE_H; // 320/480 ≈ 0.6667
 
   if (vw <= 860) {
-    // 手机：先按宽度算，再用高度限制
-    // 预留：卡片(约55) + 面板(约100) + 间距(约18) + body padding(12)
-    const reserved = 200;
-    const maxW = vw - 12;
-    const maxH = vh - reserved;
-
-    let w = maxW;
-    let h = w / ratio;
-    if (h > maxH) {
-      h = maxH;
-      w = h * ratio;
-    }
-    return { w: Math.round(w), h: Math.round(h) };
+    // 手机端：宽度 = 屏宽 - 12，几乎撑满
+    const w = vw - 12;
+    const h = Math.round(w / ratio);
+    return { w: Math.round(w), h };
   }
 
+  // 桌面端
   const maxW = 360;
   const maxH = vh * 0.78;
   let w = maxW;
@@ -145,10 +139,12 @@ function applyDisplaySize() {
 }
 
 /* =========================================================
-   状态变量
+   其他状态
    ========================================================= */
 let deadLineY = 100;
-const computeDeadLine = () => Math.round(BASE_H * (100 / 520));
+function computeDeadLine() {
+  return Math.round(BASE_H * (100 / 520));
+}
 
 const LOVE_QUOTES = [
   "花宝宝，今天也超级想你",
@@ -206,9 +202,7 @@ if (isNaN(bestScore) || bestScore < 0 || bestScore > 999999) {
   localStorage.setItem("flowerBestScore", 0);
 }
 
-/* =========================================================
-   音效
-   ========================================================= */
+/* --------- 音效 --------- */
 let audioCtx = null;
 function ensureAudio() {
   if (!audioCtx) {
@@ -233,7 +227,6 @@ function playTone(freq, duration, type, gainVal, delay) {
   osc.start(t0);
   osc.stop(t0 + (duration || 0.12) + 0.05);
 }
-
 const sfxMerge = (level) => {
   const base = 440 + level * 60;
   playTone(base, 0.12, "sine", 0.14, 0);
@@ -250,14 +243,11 @@ const sfxOver = () => {
   playTone(330, 0.18, "sine", 0.12, 0.14);
   playTone(220, 0.35, "sine", 0.14, 0.28);
 };
-
 const haptic = (ms) => {
   try { if (navigator.vibrate) navigator.vibrate(ms || 12); } catch (e) {}
 };
 
-/* =========================================================
-   同步 UI
-   ========================================================= */
+/* --------- UI 同步 --------- */
 const syncScore = (v) => {
   if (scoreDom) scoreDom.textContent = v;
   if (scoreMobileDom) scoreMobileDom.textContent = v;
@@ -270,7 +260,6 @@ const syncNext = (src) => {
   if (nextImgDom) nextImgDom.src = src;
   if (nextImgMobileDom) nextImgMobileDom.src = src;
 };
-
 const rollQuote = () => {
   const q = LOVE_QUOTES[Math.floor(Math.random() * LOVE_QUOTES.length)];
   panelTag.textContent = q;
@@ -295,9 +284,7 @@ const COMBO_NAMES = ["", "", "暴击", "连击", "超神", "无双", "传说", "
 const comboName = (n) =>
   COMBO_NAMES[Math.min(n, COMBO_NAMES.length - 1)] || "暴击";
 
-/* =========================================================
-   死亡线
-   ========================================================= */
+/* --------- 死亡线 --------- */
 function drawDeadLine() {
   if (!render || !render.context) return;
   const ctx = render.context;
@@ -348,9 +335,7 @@ function drawDeadLine() {
   ctx.restore();
 }
 
-/* =========================================================
-   目标
-   ========================================================= */
+/* --------- 目标 --------- */
 function generateGoals() {
   const pool = [
     { id: "score50",  text: "单局达到 50 分",  target: 50,  get: () => score,      reward: 15 },
@@ -400,9 +385,7 @@ function checkGoals() {
   renderGoals();
 }
 
-/* =========================================================
-   飘字 / 粒子
-   ========================================================= */
+/* --------- 飘字 / 粒子 --------- */
 function showFloatText(clientX, clientY, text, isCombo) {
   const div = document.createElement("div");
   let cls = "float-text";
@@ -458,3 +441,502 @@ function spawnBurstAtCanvas(x, y) {
 }
 
 function spawnFlashAtCanvas(x, y) {
+  const pos = canvasToClient(x, y);
+  const flash = document.createElement("div");
+  flash.className = "merge-flash";
+  flash.style.left = pos.x + "px";
+  flash.style.top = pos.y + "px";
+  floatLayer.appendChild(flash);
+  setTimeout(() => flash.remove(), 520);
+}
+
+function spawnClickPulseAtCanvas(x, y) {
+  const pos = canvasToClient(x, y);
+  const ring = document.createElement("div");
+  ring.className = "click-pulse";
+  ring.style.left = pos.x + "px";
+  ring.style.top = pos.y + "px";
+  floatLayer.appendChild(ring);
+  setTimeout(() => ring.remove(), 650);
+}
+
+/* --------- 连击 --------- */
+function triggerCombo() {
+  combo += 1;
+  maxCombo = Math.max(maxCombo, combo);
+  if (combo >= 2 && comboBadge) {
+    comboBadge.style.display = "block";
+    comboBadge.textContent =
+      comboName(combo) + " ×" + combo + "  分数 ×" + (1 + (combo - 1) * 0.2).toFixed(1);
+    sfxCombo(combo);
+  }
+  if (comboTimer) clearTimeout(comboTimer);
+  comboTimer = setTimeout(() => {
+    combo = 0;
+    if (comboBadge) comboBadge.style.display = "none";
+  }, 2000);
+}
+
+const comboMultiplier = () => 1 + Math.max(0, combo - 1) * 0.2;
+
+function shakeScreen() {
+  gameWrap.classList.remove("shake");
+  void gameWrap.offsetWidth;
+  gameWrap.classList.add("shake");
+}
+
+function bumpScore() {
+  [scoreDom, scoreMobileDom].forEach((el) => {
+    if (!el) return;
+    el.classList.remove("pop");
+    void el.offsetWidth;
+    el.classList.add("pop");
+  });
+}
+
+function updateBestScore() {
+  if (score > bestScore) {
+    bestScore = score;
+    localStorage.setItem("flowerBestScore", bestScore);
+    syncBest(bestScore);
+  }
+}
+
+function refreshSoundToggle() {
+  if (soundOn) {
+    soundToggle.textContent = "🔊";
+    soundToggle.classList.remove("off");
+  } else {
+    soundToggle.textContent = "🔇";
+    soundToggle.classList.add("off");
+  }
+}
+
+soundToggle.onclick = (e) => {
+  e.stopPropagation();
+  soundOn = !soundOn;
+  localStorage.setItem("flowerSoundOn", soundOn ? "on" : "off");
+  refreshSoundToggle();
+  if (soundOn) {
+    ensureAudio();
+    playTone(660, 0.08, "sine", 0.1, 0);
+  }
+};
+
+/* =========================================================
+   初始化
+   ========================================================= */
+async function initGame() {
+  await preloadImages();
+
+  score = 0;
+  balls = [];
+  gameRunning = true;
+  isClickLocked = false;
+  overLineTimer = 0;
+  callShown = false;
+  loveHideTimer = null;
+  combo = 0;
+  maxCombo = 0;
+  mergeCount = 0;
+  startTime = Date.now();
+  deadLineY = computeDeadLine();
+
+  if (comboTimer) clearTimeout(comboTimer);
+  if (comboBadge) comboBadge.style.display = "none";
+  syncScore(0);
+  syncBest(bestScore);
+  rollQuote();
+  refreshSoundToggle();
+
+  if (engine) {
+    Events.off(engine);
+    World.clear(engine.world, false);
+    Engine.clear(engine);
+  }
+  if (render) Render.stop(render);
+  if (runner) Runner.stop(runner);
+
+  engine = Engine.create();
+  engine.world.gravity.y = 1;
+
+  render = Render.create({
+    canvas: canvasEl,
+    engine: engine,
+    options: {
+      width: BASE_W,
+      height: BASE_H,
+      wireframes: false,
+      background: "#fff9ec",
+      pixelRatio: window.devicePixelRatio || 1
+    }
+  });
+
+  Render.run(render);
+  runner = Runner.create();
+  Runner.run(runner, engine);
+
+  // Render.create 会重置 canvas.style，所以要在之后设置
+  applyDisplaySize();
+
+  const ground = Bodies.rectangle(BASE_W / 2, BASE_H + 20, BASE_W, 40, {
+    isStatic: true, label: "ground"
+  });
+  const leftWall = Bodies.rectangle(-10, BASE_H / 2, 20, BASE_H, {
+    isStatic: true, label: "wallLeft"
+  });
+  const rightWall = Bodies.rectangle(BASE_W + 10, BASE_H / 2, 20, BASE_H, {
+    isStatic: true, label: "wallRight"
+  });
+  World.add(engine.world, [ground, leftWall, rightWall]);
+
+  Events.on(render, "afterRender", drawDeadLine);
+
+  generateGoals();
+  pickNext();
+  updatePreview();
+
+  /* ----- 输入 ----- */
+  function handlePointerMove(clientX) {
+    if (!gameRunning) return;
+    const rect = canvasEl.getBoundingClientRect();
+    const scaleX = rect.width / BASE_W;
+    const mx = (clientX - rect.left) / scaleX;
+    const x = Math.max(10, Math.min(BASE_W - 10, mx));
+
+    const wrapRect = gameWrap.getBoundingClientRect();
+    const canvasOffsetLeft = rect.left - wrapRect.left;
+    const canvasOffsetTop = rect.top - wrapRect.top;
+    const visualScale = rect.width / BASE_W;
+
+    aimLine.style.display = "block";
+    aimLine.style.left = canvasOffsetLeft + x * visualScale + "px";
+    aimLine.style.top = canvasOffsetTop + "px";
+    aimLine.style.height = deadLineY * visualScale + "px";
+
+    floatingPreview.style.display = "block";
+    floatingPreview.style.left = canvasOffsetLeft + x * visualScale - 27 + "px";
+    floatingPreview.style.top = canvasOffsetTop + deadLineY * visualScale - 28 + "px";
+  }
+
+  canvasEl.onmousemove = (e) => handlePointerMove(e.clientX);
+  canvasEl.onmouseleave = () => {
+    aimLine.style.display = "none";
+    floatingPreview.style.display = "none";
+  };
+  canvasEl.ontouchstart = (e) => {
+    ensureAudio();
+    const t = e.touches[0];
+    if (t) handlePointerMove(t.clientX);
+  };
+  canvasEl.ontouchmove = (e) => {
+    e.preventDefault();
+    const t = e.touches[0];
+    if (t) handlePointerMove(t.clientX);
+  };
+  canvasEl.ontouchend = (e) => {
+    e.preventDefault();
+    if (!gameRunning || isClickLocked) return;
+    const t = e.changedTouches[0];
+    if (!t) return;
+    const rect = canvasEl.getBoundingClientRect();
+    const scaleX = rect.width / BASE_W;
+    let mx = (t.clientX - rect.left) / scaleX;
+    mx = Math.max(20, Math.min(BASE_W - 20, mx));
+    doDrop(mx);
+  };
+  canvasEl.onclick = (e) => {
+    ensureAudio();
+    if (!gameRunning || isClickLocked) return;
+    const rect = canvasEl.getBoundingClientRect();
+    const scaleX = rect.width / BASE_W;
+    let mx = (e.clientX - rect.left) / scaleX;
+    mx = Math.max(20, Math.min(BASE_W - 20, mx));
+    doDrop(mx);
+  };
+
+  function doDrop(mx) {
+    isClickLocked = true;
+    spawnClickPulseAtCanvas(mx, deadLineY);
+    spawnBall(mx, nextLevelIndex);
+    pickNext();
+    updatePreview();
+    aimLine.style.display = "none";
+    floatingPreview.style.display = "none";
+    setTimeout(() => { isClickLocked = false; }, 300);
+  }
+
+  /* ----- 碰撞合并 ----- */
+  Events.on(engine, "collisionStart", (e) => {
+    const pairs = e.pairs;
+    for (const pair of pairs) {
+      const a = pair.bodyA;
+      const b = pair.bodyB;
+      if (a.level === undefined || b.level === undefined) continue;
+      if (a.level !== b.level) continue;
+      if (a.level >= LEVEL.length - 1) continue;
+      if (a.merged || b.merged) continue;
+
+      const newLevel = a.level + 1;
+      const newX = (a.position.x + b.position.x) / 2;
+      const newY = (a.position.y + b.position.y) / 2;
+
+      a.merged = true;
+      b.merged = true;
+
+      World.remove(engine.world, [a, b]);
+      balls = balls.filter((x) => x !== a && x !== b);
+
+      spawnBurstAtCanvas(newX, newY);
+      spawnFlashAtCanvas(newX, newY);
+      shakeScreen();
+      sfxMerge(newLevel);
+      haptic(12);
+
+      mergeCount++;
+      triggerCombo();
+
+      const mult = comboMultiplier();
+      createMergedBall(newX, newY, newLevel, mult);
+
+      if (combo >= 2) {
+        const pos = canvasToClient(newX, newY);
+        showFloatText(pos.x, pos.y - 30, comboName(combo) + " ×" + combo, true);
+      }
+
+      checkGoals();
+    }
+  });
+
+  /* ----- 死亡检测 ----- */
+  Events.on(engine, "afterUpdate", () => {
+    if (!gameRunning) return;
+    const now = Date.now();
+    let anyOverLine = false;
+    for (const b of balls) {
+      if (b.birthTime && now - b.birthTime < SPAWN_PROTECT_MS) continue;
+      const ballTop = b.position.y - b.circleRadius;
+      if (ballTop < deadLineY) { anyOverLine = true; break; }
+    }
+    if (anyOverLine) {
+      overLineTimer += engine.timing.lastDelta || 16.6;
+      if (overLineTimer >= OVER_LINE_GRACE_MS) gameOver();
+    } else {
+      overLineTimer = 0;
+    }
+  });
+}
+
+/* --------- 生成球 --------- */
+function spawnBall(x, levelIndex) {
+  const lv = LEVEL[levelIndex];
+  const ball = Bodies.circle(x, -60, lv.radius, {
+    restitution: 0.35,
+    label: "ball",
+    level: levelIndex,
+    merged: false,
+    birthTime: Date.now(),
+    render: { sprite: makeSpriteConfig(lv) }
+  });
+  World.add(engine.world, ball);
+  balls.push(ball);
+}
+
+function createMergedBall(x, y, levelIndex, mult) {
+  const lv = LEVEL[levelIndex];
+  const ball = Bodies.circle(x, y, lv.radius, {
+    restitution: 0.35,
+    label: "ball",
+    level: levelIndex,
+    merged: false,
+    birthTime: Date.now(),
+    render: { sprite: makeSpriteConfig(lv) }
+  });
+  World.add(engine.world, ball);
+  balls.push(ball);
+
+  const multiplier = mult || comboMultiplier();
+  const gained = Math.round(lv.score * multiplier);
+
+  setTimeout(() => {
+    score += gained;
+    syncScore(score);
+    bumpScore();
+    updateBestScore();
+    showScorePop("+" + gained);
+    checkGoals();
+  }, 80);
+
+  const maxDead = Math.round(BASE_H * 0.25);
+  const baseDead = computeDeadLine();
+  const newDeadLine = Math.min(maxDead, baseDead + Math.floor(score / 150) * 8);
+  if (newDeadLine !== deadLineY) deadLineY = newDeadLine;
+
+  if (levelIndex === LEVEL.length - 1) {
+    setTimeout(showLoveTransition, 350);
+  }
+  if (levelIndex === 6 && !callShown) {
+    callShown = true;
+    setTimeout(showCallTransition, 350);
+  }
+}
+
+function updatePreview() {
+  syncNext(LEVEL[nextLevelIndex].src);
+  previewImg.src = LEVEL[nextLevelIndex].src;
+}
+
+/* --------- 结束 / 重开 --------- */
+function gameOver() {
+  if (!gameRunning) return;
+  gameRunning = false;
+  sfxOver();
+  haptic(30);
+
+  const usedSec = Math.max(1, Math.round((Date.now() - startTime) / 1000));
+  const emoji = score >= 300 ? "🤩" : score >= 150 ? "😊" : score >= 50 ? "😐" : "😢";
+  overEmojiDom.textContent = emoji;
+  finalScoreBigDom.textContent = score;
+  finalComboDom.textContent = maxCombo;
+  finalMergesDom.textContent = mergeCount;
+  finalTimeDom.textContent = usedSec + "s";
+  finalBestDom.textContent = bestScore;
+  finalQuoteDom.textContent = pickFinalQuote();
+
+  gameOverModal.style.display = "flex";
+}
+
+function restartGame() {
+  if (engine) {
+    Events.off(engine);
+    World.clear(engine.world, false);
+    Engine.clear(engine);
+  }
+  if (render) Render.stop(render);
+  if (runner) Runner.stop(runner);
+
+  aimLine.style.display = "none";
+  floatingPreview.style.display = "none";
+  loveTransition.classList.remove("show");
+  loveBurst.innerHTML = "";
+  callTransition.classList.remove("show");
+  callBurst.innerHTML = "";
+
+  if (loveHideTimer) clearTimeout(loveHideTimer);
+  initGame();
+}
+
+/* --------- 转场 --------- */
+function showLoveTransition() {
+  if (loveHideTimer) clearTimeout(loveHideTimer);
+  loveTransition.classList.remove("show");
+  void loveTransition.offsetWidth;
+
+  loveImg.src = LEVEL[LEVEL.length - 1].src;
+  loveBurst.innerHTML = "";
+
+  const particles = ["❤️", "💕", "💖", "🌸", "💗", "🌷", "✨"];
+  for (let i = 0; i < 26; i++) {
+    const p = document.createElement("div");
+    p.className = "love-particle";
+    p.textContent = particles[Math.floor(Math.random() * particles.length)];
+    const angle = (Math.PI * 2 * i) / 26 + Math.random() * 0.4;
+    const dist = 120 + Math.random() * 160;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const rot = (Math.random() * 720 - 360).toFixed(0) + "deg";
+    p.style.setProperty("--dx", dx + "px");
+    p.style.setProperty("--dy", dy + "px");
+    p.style.setProperty("--rot", rot);
+    p.style.animationDelay = (Math.random() * 0.25).toFixed(2) + "s";
+    loveBurst.appendChild(p);
+  }
+
+  loveTransition.classList.add("show");
+
+  loveHideTimer = setTimeout(() => {
+    loveTransition.classList.remove("show");
+    setTimeout(() => {
+      loveBurst.innerHTML = "";
+      createHeartRain();
+    }, 800);
+  }, 3600);
+}
+
+function showCallTransition() {
+  callImg.src = LEVEL[6].src;
+  callBurst.innerHTML = "";
+  const particles = ["🔥", "👑", "💥", "⭐", "✨"];
+  for (let i = 0; i < 22; i++) {
+    const p = document.createElement("div");
+    p.className = "love-particle";
+    p.textContent = particles[Math.floor(Math.random() * particles.length)];
+    const angle = (Math.PI * 2 * i) / 22 + Math.random() * 0.4;
+    const dist = 110 + Math.random() * 140;
+    const dx = Math.cos(angle) * dist;
+    const dy = Math.sin(angle) * dist;
+    const rot = (Math.random() * 720 - 360).toFixed(0) + "deg";
+    p.style.setProperty("--dx", dx + "px");
+    p.style.setProperty("--dy", dy + "px");
+    p.style.setProperty("--rot", rot);
+    p.style.animationDelay = (Math.random() * 0.25).toFixed(2) + "s";
+    callBurst.appendChild(p);
+  }
+  callTransition.classList.add("show");
+  setTimeout(() => {
+    callTransition.classList.remove("show");
+    setTimeout(() => { callBurst.innerHTML = ""; }, 700);
+  }, 2800);
+}
+
+function createHeartRain() {
+  const hearts = ["❤️", "💕", "💖", "🌸", "💗"];
+  for (let i = 0; i < 30; i++) {
+    setTimeout(() => {
+      const div = document.createElement("div");
+      div.className = "heart";
+      div.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+      div.style.left = Math.random() * 100 + "vw";
+      div.style.animationDuration = 4 + Math.random() * 4 + "s";
+      heartContainer.appendChild(div);
+      setTimeout(() => div.remove(), 8000);
+    }, i * 100);
+  }
+}
+
+/* --------- 背景花瓣 --------- */
+function startAmbientPetals() {
+  if (window.innerWidth <= 860) return;
+  const petals = ["🌸", "🌷", "💮", "🌺"];
+  setInterval(() => {
+    if (document.hidden) return;
+    if (window.innerWidth <= 860) return;
+    const p = document.createElement("div");
+    p.className = "ambient-petal";
+    p.textContent = petals[Math.floor(Math.random() * petals.length)];
+    p.style.left = Math.random() * 100 + "vw";
+    p.style.fontSize = 12 + Math.random() * 14 + "px";
+    p.style.animationDuration = 10 + Math.random() * 10 + "s";
+    document.body.appendChild(p);
+    setTimeout(() => p.remove(), 22000);
+  }, 1800);
+}
+
+/* --------- 窗口变化 --------- */
+let resizeTimer = null;
+window.addEventListener("resize", () => {
+  if (resizeTimer) clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(applyDisplaySize, 100);
+});
+window.addEventListener("orientationchange", () => {
+  setTimeout(applyDisplaySize, 200);
+});
+
+closeOverBtn.onclick = () => {
+  gameOverModal.style.display = "none";
+  restartGame();
+};
+restartBtn.onclick = restartGame;
+
+initGame();
+startAmbientPetals();
